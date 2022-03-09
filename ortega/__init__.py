@@ -3,7 +3,7 @@ from ortega.ellipses import *
 from ortega.STPoint import *
 
 __title__ = "ortega"
-__version__ = "0.0.4"
+__version__ = "0.0.5"
 __author__ = ""
 __url__ = ""
 __uri__ = __url__

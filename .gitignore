@@ -3,7 +3,7 @@ __pycache__
 
 build
 dist
-ortega.eff-info
+ortega.egg-info
 
 .env*
 .venv*
