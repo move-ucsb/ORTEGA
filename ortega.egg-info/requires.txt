@@ -1,0 +1,6 @@
+numpy
+pandas
+shapely
+attrs
+matplotlib
+statistics
