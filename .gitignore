@@ -7,3 +7,6 @@ ortega.egg-info
 
 .env*
 .venv*
+
+.idea
+.DS_store

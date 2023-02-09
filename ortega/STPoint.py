@@ -9,26 +9,26 @@ from shapely.geometry import Point
 
 
 class STPoint:
-    def __init__(self, x: float, y: float, time: pd.Timestamp, t_id: int):
+    def __init__(self, x: float, y: float, time: pd.Timestamp, pid: int):
         self.x = x
         self.y = y
         self.time = time
-        self.id = t_id
+        self.id = pid
 
     @classmethod
     def from_row(
         cls,
         row: Any,
-        latitude_field: str = "latitude",
-        longitude_field: str = "longitude",
-        tiger_ID: str = "tid",
-        timefield: str = "Time_LMT",
+        latitude_field: str,
+        longitude_field: str,
+        id_field: str,
+        timefield: str,
     ):
         return cls(
             row[latitude_field],
             row[longitude_field],
             row[timefield],
-            row[tiger_ID],
+            row[id_field],
         )
 
     def average_speed(
@@ -55,6 +55,12 @@ class STPoint:
         return self.delta_time(stp2) / 3600
 
     def ellipse(self, stp2: STPoint, speed: float):
+        """
+        Compute the four parameters center, major, minor, angle for further creating PPA
+        :param stp2:
+        :param speed:
+        :return:
+        """
         dt = self.delta_time_hours(stp2)
         dx, dy, dist = self.dx_dy_euclidean(stp2)
 
