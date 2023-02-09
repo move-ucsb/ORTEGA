@@ -5,7 +5,7 @@ from ortega.visualization import *
 from ortega.output import *
 
 __title__ = "ortega"
-__version__ = "0.0.9"
+__version__ = "0.0.10"
 __author__ = ""
 __url__ = ""
 __uri__ = __url__
