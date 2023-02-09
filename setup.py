@@ -17,7 +17,7 @@ if __name__ == "__main__":
     setup(
         name=meta("title"),
         version=meta("version"),
-        author='Rongxiang Su, etc',
+        author='MOVE lab@UCSB',
         author_email="rongxiangsu@ucsb.edu",
         packages=["ortega"],
         url='https://move.geog.ucsb.edu/',

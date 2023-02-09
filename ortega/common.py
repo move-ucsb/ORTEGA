@@ -1,6 +1,6 @@
 from geographiclib.geodesic import Geodesic
 import pandas as pd
-# import numpy as np
+import numpy as np
 
 
 def __check_dist(lat1: float, lon1: float, lat2: float, lon2: float):

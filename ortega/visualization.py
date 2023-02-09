@@ -7,7 +7,7 @@ from .traj import *
 # from matplotlib.animation import FuncAnimation
 
 
-def plot_original_tracks(interation, max_el_time_min: float,
+def plot_original_tracks(interation, max_el_time_min: float = 10000,
                          throw_out_big_ellipses: bool = True, legend: bool = True,
                          save_plot: bool = False):  # max_val: float,
     color1 = "#ff0000"
@@ -43,7 +43,7 @@ def plot_original_tracks(interation, max_el_time_min: float,
     plt.show()
 
 
-def plot_interaction(interation, max_el_time_min: float, throw_out_big_ellipses: bool = True,
+def plot_interaction(interation, max_el_time_min: float = 10000, throw_out_big_ellipses: bool = True,
                      legend: bool = True, save_plot: bool = False):  # max_val: float,
     color1 = "#ff0000"  # "#3ABA36" #green #
     color2 = "#0000ff"  # "#ff0000" #red %"#005EFF" #blue #"
