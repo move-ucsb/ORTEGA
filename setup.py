@@ -17,9 +17,10 @@ if __name__ == "__main__":
     setup(
         name=meta("title"),
         version=meta("version"),
-        author=meta("author"),
+        author='Rongxiang Su, etc',
+        author_email="rongxiangsu@ucsb.edu",
         packages=["ortega"],
-        url=meta("url"),
+        url='https://move.geog.ucsb.edu/',
         license=meta("license"),
         description=meta("description"),
         install_requires=[

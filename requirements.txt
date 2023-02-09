@@ -14,3 +14,4 @@ pytz==2021.3
 Shapely==1.8.1.post1
 six==1.16.0
 statistics==1.0.3.5
+typing_extensions
