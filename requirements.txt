@@ -1,6 +1,6 @@
 numpy
 pandas
-attrs==21.4.0
+attrs
 cycler==0.11.0
 docutils==0.18.1
 fonttools==4.29.1
@@ -15,3 +15,4 @@ Shapely==1.8.1.post1
 six==1.16.0
 statistics==1.0.3.5
 typing_extensions
+geographiclib

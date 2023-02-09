@@ -1,6 +1,8 @@
 from ortega.ortega import *
 from ortega.ellipses import *
 from ortega.STPoint import *
+from ortega.visualization import *
+from ortega.output import *
 
 __title__ = "ortega"
 __version__ = "0.0.9"

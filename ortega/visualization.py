@@ -1,12 +1,9 @@
-from typing import List, Tuple
 import matplotlib.pyplot as plt
 import matplotlib.patches as mpatches
 import pandas as pd
 import numpy as np
 from .traj import *
-from keplergl import KeplerGl
-
-
+# from keplergl import KeplerGl
 # from matplotlib.animation import FuncAnimation
 
 
