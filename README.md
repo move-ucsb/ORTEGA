@@ -11,7 +11,7 @@ Current version of ortega only supports inputting GPS points of a pair of moving
 
 
 
-## Getting Started
+## Getting started
 ortega can be installed through pip command. 
 ```bash
 pip install ortega
