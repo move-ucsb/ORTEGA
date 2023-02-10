@@ -11,18 +11,25 @@ Current version of ortega only supports inputting GPS points of a pair of moving
 
 
 
-## 1. Install ortega 
+## Getting Started
 ortega can be installed through pip command. 
 ```bash
 pip install ortega
 ```
-## 2. How to use ortega
+## How to use ortega
 
-Check our [example notebook](https://github.com/move-ucsb/ORTEGA/blob/main/examples/example.ipynb) to learn how to use ortega for interaction analysis using movement data.
+Check our [example notebook](https://github.com/move-ucsb/ORTEGA/blob/main/examples/example.ipynb) to learn how to use ortega for interaction analysis using movement data of two entities.
 
 [//]: # (```bash)
 
 [//]: # (pip install --index-url https://test.pypi.org/simple/ --extra-index-url https://pypi.org/simple ortega)
 
 [//]: # (```)
+
+## Find any issues?
+
+You may report any issues [here](https://github.com/move-ucsb/ORTEGA/issues).
+
+## License
+ortega is licensed under the MIT license. See the [LICENSE](https://github.com/move-ucsb/ORTEGA/blob/main/LICENSE) file for details.
 
