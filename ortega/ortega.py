@@ -145,6 +145,7 @@ def __merge_continuous_incident(df: pd.DataFrame, id1: int, id2: int):
     df_new['Person2'] = id2
     df_new['No'] = np.arange(df_new.shape[0]) + 1
     df_new['Duration'] = df_new['End'] - df_new['Start']
+    df_new['Duration'] = df_new['Duration'].dt.total_seconds().div(60)
     return df_new[['No', 'Person1', 'Person2', 'Start', 'End', 'Duration']]
 
 
