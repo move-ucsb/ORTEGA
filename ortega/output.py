@@ -4,6 +4,7 @@ from typing import List
 import pandas as pd
 import statistics
 import matplotlib.pyplot as plt
+import seaborn
 
 
 def output_shapefile(ellipses_list: List[Ellipse], max_el_time_min: float, id1, id2):
@@ -68,9 +69,12 @@ def compute_ppa_size(ellipses_list1: List[Ellipse], ellipses_list2: List[Ellipse
     print(f"Median:", statistics.median(ellipse_size_collection['size_list2']))
     print(f"Standard deviation:", statistics.stdev(ellipse_size_collection['size_list2']))
     if plot:
-        fig, (ax1, ax2) = plt.subplots(1, 2)
-        ax1.boxplot(ellipse_size_collection['size_list1'], labels=[id1], showmeans=True, showfliers=False)
-        ax2.boxplot(ellipse_size_collection['size_list2'], labels=[id2], showmeans=True, showfliers=False)
+        plt.rcParams.update({'font.size': 14})
+        fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(12, 5))
+        seaborn.violinplot(ellipse_size_collection['size_list1'], ax=ax1)
+        seaborn.violinplot(ellipse_size_collection['size_list2'], ax=ax2)
+        ax1.set_xlabel(str(id1))
+        ax2.set_xlabel(str(id2))
         plt.show()
     return ellipse_size_collection
 
@@ -96,8 +100,11 @@ def compute_ppa_interval(df1: pd.DataFrame, df2: pd.DataFrame, time_field: str, 
     print(f"Standard deviation:", time_diff[1].std())
 
     if plot:
-        fig, (ax1, ax2) = plt.subplots(1, 2)
-        ax1.boxplot(time_diff[0], labels=[id1], showmeans=True, showfliers=False)
-        ax2.boxplot(time_diff[1], labels=[id2], showmeans=True, showfliers=False)
+        plt.rcParams.update({'font.size': 14})
+        fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(12, 5))
+        seaborn.violinplot(time_diff[0], ax=ax1)
+        seaborn.violinplot(time_diff[1], ax=ax2)
+        ax1.set_xlabel(str(id1))
+        ax2.set_xlabel(str(id2))
         plt.show()
     return time_diff

@@ -3,13 +3,13 @@ import matplotlib.patches as mpatches
 import pandas as pd
 import numpy as np
 from .traj import *
+from .ortega import ORTEGA
 # from keplergl import KeplerGl
 # from matplotlib.animation import FuncAnimation
 
 
-def plot_original_tracks(interation, max_el_time_min: float = 10000,
-                         throw_out_big_ellipses: bool = True, legend: bool = True,
-                         save_plot: bool = False):  # max_val: float,
+def plot_original_tracks(interation: ORTEGA, throw_out_big_ellipses: bool = True, legend: bool = True,
+                         save_plot: bool = False):
     color1 = "#ff0000"
     color2 = "#0000ff"
     colors = [color1, color2]
@@ -20,7 +20,7 @@ def plot_original_tracks(interation, max_el_time_min: float = 10000,
         color_picked = colors[i]
         for item in collection:
             if throw_out_big_ellipses and abs(
-                    pd.Timedelta(item.t2 - item.t1).total_seconds()) >= max_el_time_min * 60:
+                    pd.Timedelta(item.t2 - item.t1).total_seconds()) >= interation.max_el_time_min * 60:
                 continue
             # if throw_out_big_ellipses and item.el[0].length > max_val:
             #     continue
@@ -43,8 +43,8 @@ def plot_original_tracks(interation, max_el_time_min: float = 10000,
     plt.show()
 
 
-def plot_interaction(interation, max_el_time_min: float = 10000, throw_out_big_ellipses: bool = True,
-                     legend: bool = True, save_plot: bool = False):  # max_val: float,
+def plot_interaction(interation: ORTEGA, throw_out_big_ellipses: bool = True,
+                     legend: bool = True, save_plot: bool = False):
     color1 = "#ff0000"  # "#3ABA36" #green #
     color2 = "#0000ff"  # "#ff0000" #red %"#005EFF" #blue #"
     interaction_color = "#f2ff00"  # yellow
@@ -56,7 +56,7 @@ def plot_interaction(interation, max_el_time_min: float = 10000, throw_out_big_e
         color_picked = colors[i]
         for item in collection:
             if throw_out_big_ellipses and abs(
-                    pd.Timedelta(item.t2 - item.t1).total_seconds()) >= max_el_time_min * 60:
+                    pd.Timedelta(item.t2 - item.t1).total_seconds()) >= interation.max_el_time_min * 60:
                 continue
             # if throw_out_big_ellipses and item.el[0].length > max_val:
             #     continue
@@ -69,7 +69,7 @@ def plot_interaction(interation, max_el_time_min: float = 10000, throw_out_big_e
     for two_item in interation.all_intersection_pairs:
         for item in two_item:
             if throw_out_big_ellipses and abs(
-                    pd.Timedelta(item.t2 - item.t1).total_seconds()) >= max_el_time_min * 60:
+                    pd.Timedelta(item.t2 - item.t1).total_seconds()) >= interation.max_el_time_min * 60:
                 continue
             x1, y1 = item.el[0].xy
             plt.plot(y1, x1, color=interaction_color, alpha=0.8, linewidth=1, solid_capstyle="round")

@@ -1,10 +1,10 @@
 from datetime import datetime as datetime
-
 from .ellipses import Ellipse, EllipseList
 from pandas.api.types import is_datetime64_dtype
 from typing import List, Tuple
 from .common import __timedifcheck
 from .common import *
+from .output import *
 
 
 def __check_spatial_intersect(item: Ellipse, others: Ellipse) -> bool:
@@ -193,6 +193,7 @@ def durationEstimator(df: pd.DataFrame, max_el_time_min: float, id1: int, id2: i
     df_new['No'] = np.arange(df_new.shape[0]) + 1
     df_new['Duration'] = df_new['End'] - df_new['Start']
     df_new['Duration'] = df_new['Duration'].dt.total_seconds().div(60)
+    df_new = __merge_continuous_incident(df_new, id1, id2)
     return df_new[['No', 'Person1', 'Person2', 'Start', 'End', 'Duration']]
 
 
@@ -388,6 +389,7 @@ class ORTEGA:
             # compute duration of interaction and output as a df
             self.df_duration = durationEstimator(self.df_all_intersection_pairs, self.max_el_time_min, self.id1,
                                                  self.id2)
+            self.__merge_continuous_incident
 
     def __get_ellipse_list(self, df1: pd.DataFrame, df2: pd.DataFrame):
         """
@@ -406,4 +408,12 @@ class ORTEGA:
         return get_spatiotemporal_intersect_pairs(self.ellipses_list_id1, self.ellipses_list_id2,
                                                   self.minute_delay, self.max_el_time_min)
 
+    def save_shapefile(self):
+        output_shapefile(self.ellipses_list, self.max_el_time_min, self.id1, self.id2)
+
+    def compute_ppa_size(self):
+        compute_ppa_size(self.ellipses_list_id1, self.ellipses_list_id2, self.id1, self.id2)
+
+    def compute_ppa_interval(self):
+        compute_ppa_interval(self.df1, self.df2, self.time_field, self.id1, self.id2)
 

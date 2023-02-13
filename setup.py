@@ -30,6 +30,7 @@ if __name__ == "__main__":
             "attrs",
             "matplotlib",
             "statistics",
-            "geographiclib"
+            "geographiclib",
+            "seaborn"
         ],
     )
