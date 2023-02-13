@@ -389,7 +389,7 @@ class ORTEGA:
             # compute duration of interaction and output as a df
             self.df_duration = durationEstimator(self.df_all_intersection_pairs, self.max_el_time_min, self.id1,
                                                  self.id2)
-            self.__merge_continuous_incident
+
 
     def __get_ellipse_list(self, df1: pd.DataFrame, df2: pd.DataFrame):
         """
