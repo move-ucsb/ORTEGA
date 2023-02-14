@@ -10,3 +10,4 @@ def __check_dist(lat1: float, lon1: float, lat2: float, lon2: float):
 
 def __timedifcheck(t1: pd.Timestamp, t2: pd.Timestamp):
     return abs(pd.Timedelta(t2 - t1).total_seconds())
+

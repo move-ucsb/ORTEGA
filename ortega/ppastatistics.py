@@ -2,6 +2,15 @@ import statistics
 import matplotlib.pyplot as plt
 import seaborn
 from .ortega import ORTEGA
+import math
+from .common import __timedifcheck
+from .common import __check_dist
+import pandas as pd
+import utm
+
+from geographiclib.geodesic import Geodesic
+Geo = Geodesic.WGS84
+
 # from osgeo import ogr
 
 
@@ -71,6 +80,60 @@ def compute_ppa_interval(interation: ORTEGA, plot: bool = True):
     return time_diff
 
 
+def compute_ppa_speed(df: pd.DataFrame, plot: bool = True):
+    def compute_speed(x):
+        d1 = __check_dist(x['P1_startlat'], x['P1_startlon'], x['P1_endlat'], x['P1_endlon'])
+        delta_time1 = __timedifcheck(x['P1_t_start'], x['P1_t_end'])
+        x['P1_speed'] = d1 / delta_time1
+        d2 = __check_dist(x['P2_startlat'], x['P2_startlon'], x['P2_endlat'], x['P2_endlon'])
+        delta_time2 = __timedifcheck(x['P2_t_start'], x['P2_t_end'])
+        x['P2_speed'] = d2 / delta_time2 #m/s
+        return x
+
+    df = df.apply(lambda x: compute_speed(x), axis=1)
+    df['diff_speed'] = (df['P2_speed'] - df['P1_speed']).abs() / (
+                (df['P1_speed'] + df['P2_speed']) / 2)
+    print("Statistics of percentage difference in movement speed between intersecting PPAs:")
+    print(df['diff_speed'].describe())
+    if plot:
+        plt.rcParams.update({'font.size': 14})
+        ax = seaborn.violinplot(df['diff_speed'])
+        ax.set_xticklabels(['diff_speed'])
+        plt.show()
+    return df
+
+
+def compute_ppa_direction(df: pd.DataFrame, plot: bool = True):
+    def compute_direction(x):
+        p1_start = utm.from_latlon(x['P1_startlat'], x['P1_startlon'])
+        p1_end = utm.from_latlon(x['P1_endlat'], x['P1_endlon'])
+        # Angle between p1 and p2 in degree, Difference in x coordinates, Difference in y coordinates
+        x['P1_direction'] = math.degrees(math.atan2(p1_end[0] - p1_start[0], p1_end[1] - p1_start[1]))
+        p2_start = utm.from_latlon(x['P2_startlat'], x['P2_startlon'])
+        p2_end = utm.from_latlon(x['P2_endlat'], x['P2_endlon'])
+        x['P2_direction'] = math.degrees(math.atan2(p2_end[0] - p2_start[0], p2_end[1] - p2_start[1]))
+        return x
+
+    def between_angles(x, a):
+        if x[a] >= 180:
+            x[a] -= 360
+        if x[a] < -180:
+            x[a] += 360
+        x[a] = abs(x[a])
+        return x
+
+    df = df.apply(lambda x: compute_direction(x), axis=1)
+    df['diff_angle'] = df['P2_direction'] - df['P1_direction']
+    df = df.apply(lambda x: between_angles(x, 'diff_angle'), axis=1)
+    print("Statistics of difference in movement direction between intersecting PPAs:")
+    print(df['diff_angle'].describe())
+
+    if plot:
+        plt.rcParams.update({'font.size': 14})
+        ax = seaborn.violinplot(df['diff_angle'])
+        ax.set_xticklabels(['diff_direction (degree)'])
+        plt.show()
+    return df
 
 # def output_shapefile(interation: ORTEGA):
 #     # Now convert it to a shapefile with OGR
