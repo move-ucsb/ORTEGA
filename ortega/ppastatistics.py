@@ -1,6 +1,4 @@
 import statistics
-import matplotlib.pyplot as plt
-import seaborn
 from .ortega import ORTEGA
 import math
 from .common import __timedifcheck
@@ -12,75 +10,74 @@ from geographiclib.geodesic import Geodesic
 Geo = Geodesic.WGS84
 
 # from osgeo import ogr
+# import seaborn
+# import matplotlib.pyplot as plt
 
 
-def compute_ppa_size(interation: ORTEGA, plot: bool = True):
-    print("Statistics of PPA ellipses size")
+def compute_ppa_size(interation: ORTEGA):
     size_list1 = [e.el[0].length for e in interation.ellipses_list_id1]
     size_list2 = [e.el[0].length for e in interation.ellipses_list_id2]
     id1 = interation.id1
     id2 = interation.id2
 
     ellipse_size_collection = {"size_list1": size_list1, "size_list2": size_list2}
-    print(f"id {id1} ellipse length:")
-    print(f"Mean:", statistics.mean(ellipse_size_collection['size_list1']))
-    print(f"Min:", min(ellipse_size_collection['size_list1']))
-    print(f"Max:", max(ellipse_size_collection['size_list1']))
-    print(f"Median:", statistics.median(ellipse_size_collection['size_list1']))
-    print(f"Standard deviation:", statistics.stdev(ellipse_size_collection['size_list1']))
-    print(f"id {id2} ellipse length:")
-    print(f"Mean:", statistics.mean(ellipse_size_collection['size_list2']))
-    print(f"Min:", min(ellipse_size_collection['size_list2']))
-    print(f"Max:", max(ellipse_size_collection['size_list2']))
-    print(f"Median:", statistics.median(ellipse_size_collection['size_list2']))
-    print(f"Standard deviation:", statistics.stdev(ellipse_size_collection['size_list2']))
-    if plot:
-        plt.rcParams.update({'font.size': 14})
-        fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(12, 5))
-        seaborn.violinplot(data=ellipse_size_collection['size_list1'], ax=ax1)
-        seaborn.violinplot(data=ellipse_size_collection['size_list2'], ax=ax2)
-        ax1.set_xticklabels([str(id1)])
-        ax2.set_xticklabels([str(id2)])
-        plt.show()
+    print(f"Statistics of PPA ellipses length for id {id1}:")
+    print(f"mean:", statistics.mean(ellipse_size_collection['size_list1']))
+    print(f"min:", min(ellipse_size_collection['size_list1']))
+    print(f"max:", max(ellipse_size_collection['size_list1']))
+    print(f"median:", statistics.median(ellipse_size_collection['size_list1']))
+    print(f"std:", statistics.stdev(ellipse_size_collection['size_list1']))
+    print(f"Statistics of PPA ellipses length for id {id2}:")
+    print(f"mean:", statistics.mean(ellipse_size_collection['size_list2']))
+    print(f"min:", min(ellipse_size_collection['size_list2']))
+    print(f"max:", max(ellipse_size_collection['size_list2']))
+    print(f"median:", statistics.median(ellipse_size_collection['size_list2']))
+    print(f"std:", statistics.stdev(ellipse_size_collection['size_list2']))
+    # if plot:
+    #     plt.rcParams.update({'font.size': 14})
+    #     fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(12, 5))
+    #     seaborn.violinplot(data=ellipse_size_collection['size_list1'], ax=ax1)
+    #     seaborn.violinplot(data=ellipse_size_collection['size_list2'], ax=ax2)
+    #     ax1.set_xticklabels([str(id1)])
+    #     ax2.set_xticklabels([str(id2)])
+    #     plt.show()
     return ellipse_size_collection
 
 
-def compute_ppa_interval(interation: ORTEGA, plot: bool = True):
+def compute_ppa_interval(interation: ORTEGA):
     id1 = interation.id1
     id2 = interation.id2
-    print("Statistics of PPA ellipses time interval")
+    print(f"Statistics of PPA ellipses time interval (minutes) for id {id1}:")
     time_diff = [
         interation.df1[interation.time_field].diff().dt.total_seconds().div(60).dropna(),
         interation.df2[interation.time_field].diff().dt.total_seconds().div(60).dropna()
     ]
-    print(f"id {id1} time interval (minutes):")
-    print(f"Mean:", time_diff[0].mean())
-    print(f"Min:", time_diff[0].min())
-    print(f"Max:", time_diff[0].max())
-    print(f"Median:", time_diff[0].median())
-    print(f"Standard deviation:", time_diff[0].std())
+    print(f"mean:", time_diff[0].mean())
+    print(f"min:", time_diff[0].min())
+    print(f"max:", time_diff[0].max())
+    print(f"median:", time_diff[0].median())
+    print(f"std:", time_diff[0].std())
 
-    print(f"id {id2} time interval (minutes):")
-    print(f"Mean:", time_diff[1].mean())
-    print(f"Min:", time_diff[1].min())
-    print(f"Max:", time_diff[1].max())
-    print(f"Median:", time_diff[1].median())
-    print(f"Standard deviation:", time_diff[1].std())
-
-    if plot:
-        plt.rcParams.update({'font.size': 14})
-        fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(12, 5))
-        seaborn.violinplot(data=time_diff[0].tolist(), ax=ax1)
-        seaborn.violinplot(data=time_diff[1].tolist(), ax=ax2)
-        ax1.set_xticklabels([str(id1)])
-        ax2.set_xticklabels([str(id2)])
-        ax1.set_ylabel('Interval (min)')
-        ax2.set_ylabel('Interval (min)')
-        plt.show()
+    print(f"Statistics of PPA ellipses time interval (minutes) for id {id2}:")
+    print(f"mean:", time_diff[1].mean())
+    print(f"min:", time_diff[1].min())
+    print(f"max:", time_diff[1].max())
+    print(f"median:", time_diff[1].median())
+    print(f"std:", time_diff[1].std())
+    # if plot:
+    #     plt.rcParams.update({'font.size': 14})
+    #     fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(12, 5))
+    #     seaborn.violinplot(data=time_diff[0].tolist(), ax=ax1)
+    #     seaborn.violinplot(data=time_diff[1].tolist(), ax=ax2)
+    #     ax1.set_xticklabels([str(id1)])
+    #     ax2.set_xticklabels([str(id2)])
+    #     ax1.set_ylabel('Interval (min)')
+    #     ax2.set_ylabel('Interval (min)')
+    #     plt.show()
     return time_diff
 
 
-def compute_ppa_speed(df: pd.DataFrame, plot: bool = True):
+def compute_ppa_speed(df: pd.DataFrame):
     def compute_speed(x):
         d1 = __check_dist(x['P1_startlat'], x['P1_startlon'], x['P1_endlat'], x['P1_endlon'])
         delta_time1 = __timedifcheck(x['P1_t_start'], x['P1_t_end'])
@@ -95,15 +92,10 @@ def compute_ppa_speed(df: pd.DataFrame, plot: bool = True):
                 (df['P1_speed'] + df['P2_speed']) / 2)
     print("Statistics of percentage difference in movement speed between intersecting PPAs:")
     print(df['diff_speed'].describe())
-    if plot:
-        plt.rcParams.update({'font.size': 14})
-        ax = seaborn.violinplot(data=df['diff_speed'])
-        ax.set_xticklabels(['diff_speed'])
-        plt.show()
     return df
 
 
-def compute_ppa_direction(df: pd.DataFrame, plot: bool = True):
+def compute_ppa_direction(df: pd.DataFrame):
     def compute_direction(x):
         p1_start = utm.from_latlon(x['P1_startlat'], x['P1_startlon'])
         p1_end = utm.from_latlon(x['P1_endlat'], x['P1_endlon'])
@@ -127,12 +119,6 @@ def compute_ppa_direction(df: pd.DataFrame, plot: bool = True):
     df = df.apply(lambda x: between_angles(x, 'diff_angle'), axis=1)
     print("Statistics of difference in movement direction between intersecting PPAs:")
     print(df['diff_angle'].describe())
-
-    if plot:
-        plt.rcParams.update({'font.size': 14})
-        ax = seaborn.violinplot(data=df['diff_angle'])
-        ax.set_xticklabels(['diff_direction (degree)'])
-        plt.show()
     return df
 
 # def output_shapefile(interation: ORTEGA):
