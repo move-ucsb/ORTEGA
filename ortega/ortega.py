@@ -68,13 +68,13 @@ def intersect_ellipse_todataframe(intersection_df: List[Tuple[Ellipse, Ellipse]]
         as_dict = e.to_dict()
 
         return {
-            f"Person{num}": as_dict["pid"],
-            f"Person{num}_t_start": as_dict["t2"],
-            f"Person{num}_t_end": as_dict["t1"],
-            f"Person{num}_startlat": as_dict["last_lat"],
-            f"Person{num}_startlon": as_dict["last_lon"],
-            f"Person{num}_endlat": as_dict["lat"],
-            f"Person{num}_endlon": as_dict["lon"]
+            f"P{num}": as_dict["pid"],
+            f"P{num}_t_start": as_dict["t2"],
+            f"P{num}_t_end": as_dict["t1"],
+            f"P{num}_startlat": as_dict["last_lat"],
+            f"P{num}_startlon": as_dict["last_lon"],
+            f"P{num}_endlat": as_dict["lat"],
+            f"P{num}_endlon": as_dict["lon"]
         }
 
     return pd.DataFrame(
@@ -92,13 +92,13 @@ def __remove_largePPA(df: pd.DataFrame, max_el_time_min: float):
     :param max_el_time_min:
     :return:
     """
-    df['p1diff'] = df['Person1_t_end'] - df['Person1_t_start']
+    df['p1diff'] = df['P1_t_end'] - df['P1_t_start']
     df['p1diff'] = df['p1diff'].dt.total_seconds().div(60)
-    df['p2diff'] = df['Person2_t_end'] - df['Person2_t_start']
+    df['p2diff'] = df['P2_t_end'] - df['P2_t_start']
     df['p2diff'] = df['p2diff'].dt.total_seconds().div(60)
     df = df[(df['p1diff'] > 0) & (df['p1diff'] < max_el_time_min)]
     df = df[(df['p2diff'] > 0) & (df['p2diff'] < max_el_time_min)]
-    df = df.sort_values(by=['Person1_t_start', 'Person2_t_start'])
+    df = df.sort_values(by=['P1_t_start', 'P2_t_start'])
     return df
 
 
@@ -141,12 +141,12 @@ def __merge_continuous_incident(df: pd.DataFrame, id1: int, id2: int):
         finalend.append(max(item))
 
     df_new = pd.DataFrame(list(zip(finalstart, finalend)), columns=['Start', 'End'])
-    df_new['Person1'] = id1
-    df_new['Person2'] = id2
+    df_new['P1'] = id1
+    df_new['P2'] = id2
     df_new['No'] = np.arange(df_new.shape[0]) + 1
     df_new['Duration'] = df_new['End'] - df_new['Start']
     df_new['Duration'] = df_new['Duration'].dt.total_seconds().div(60)
-    return df_new[['No', 'Person1', 'Person2', 'Start', 'End', 'Duration']]
+    return df_new[['No', 'P1', 'P2', 'Start', 'End', 'Duration']]
 
 
 def durationEstimator(df: pd.DataFrame, max_el_time_min: float, id1: int, id2: int):
@@ -159,10 +159,10 @@ def durationEstimator(df: pd.DataFrame, max_el_time_min: float, id1: int, id2: i
     :return:
     """
     df = __remove_largePPA(df, max_el_time_min)
-    p1start = df['Person1_t_start'].tolist()
-    p1end = df['Person1_t_end'].tolist()
-    p2start = df['Person2_t_start'].tolist()
-    p2end = df['Person2_t_end'].tolist()
+    p1start = df['P1_t_start'].tolist()
+    p1end = df['P1_t_end'].tolist()
+    p2start = df['P2_t_start'].tolist()
+    p2end = df['P2_t_end'].tolist()
     final_start, final_end, subsequenceOfInteraction = [], [], []
     for i in range(0, len(p1start) - 1):  # identify subsequence of continuous interaction
         if datetime.strptime(str(p1start[i]), '%Y-%m-%d %H:%M:%S') == datetime.strptime(str(p1start[i + 1]),
@@ -189,13 +189,13 @@ def durationEstimator(df: pd.DataFrame, max_el_time_min: float, id1: int, id2: i
         final_start.append(min(subsequenceOfInteraction))
         final_end.append(max(subsequenceOfInteraction))
     df_new = pd.DataFrame(list(zip(final_start, final_end)), columns=['Start', 'End'])
-    df_new['Person1'] = id1
-    df_new['Person2'] = id2
+    df_new['P1'] = id1
+    df_new['P2'] = id2
     df_new['No'] = np.arange(df_new.shape[0]) + 1
     df_new['Duration'] = df_new['End'] - df_new['Start']
     df_new['Duration'] = df_new['Duration'].dt.total_seconds().div(60)
     df_new = __merge_continuous_incident(df_new, id1, id2)
-    return df_new[['No', 'Person1', 'Person2', 'Start', 'End', 'Duration']]
+    return df_new[['No', 'P1', 'P2', 'Start', 'End', 'Duration']]
 
 
 class ORTEGA:
