@@ -3,13 +3,13 @@ from setuptools import setup
 if __name__ == "__main__":
     setup(
         name='ortega',
-        version='0.0.24',
+        version='0.0.25',
         author='MOVE lab@UCSB',
         author_email="rongxiangsu@ucsb.edu",
         packages=["ortega"],
         url='https://move.geog.ucsb.edu/',
         license='MIT',
-        description='',
+        description='ORTEGA',
         install_requires=[
             "numpy",
             "pandas",
