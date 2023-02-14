@@ -4,8 +4,6 @@ from pandas.api.types import is_datetime64_dtype
 from typing import List, Tuple
 from .common import __timedifcheck
 from .common import *
-from .output import *
-
 
 def __check_spatial_intersect(item: Ellipse, others: Ellipse) -> bool:
     return (

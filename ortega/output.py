@@ -1,5 +1,5 @@
-from .ellipses import Ellipse
-from typing import List
+# from .ellipses import Ellipse
+# from typing import List
 import pandas as pd
 import statistics
 import matplotlib.pyplot as plt
