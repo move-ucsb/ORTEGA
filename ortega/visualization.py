@@ -50,7 +50,7 @@ def plot_interaction(interation: ORTEGA, throw_out_big_ellipses: bool = True,
     interaction_color = "#f2ff00"  # yellow
     colors = [color1, color2]
     fig = plt.figure(1, figsize=(8, 8), dpi=90)
-    fig.set_tight_layout(True)
+    # fig.set_tight_layout(True)
 
     for i, collection in enumerate([interation.ellipses_list_id1, interation.ellipses_list_id2]):
         color_picked = colors[i]

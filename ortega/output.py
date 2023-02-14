@@ -71,8 +71,8 @@ def compute_ppa_size(ellipses_list1: List[Ellipse], ellipses_list2: List[Ellipse
     if plot:
         plt.rcParams.update({'font.size': 14})
         fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(12, 5))
-        seaborn.violinplot(ellipse_size_collection['size_list1'], ax=ax1)
-        seaborn.violinplot(ellipse_size_collection['size_list2'], ax=ax2)
+        seaborn.violinplot(data=ellipse_size_collection['size_list1'], ax=ax1)
+        seaborn.violinplot(data=ellipse_size_collection['size_list2'], ax=ax2)
         ax1.set_xlabel(str(id1))
         ax2.set_xlabel(str(id2))
         plt.show()
@@ -102,8 +102,8 @@ def compute_ppa_interval(df1: pd.DataFrame, df2: pd.DataFrame, time_field: str, 
     if plot:
         plt.rcParams.update({'font.size': 14})
         fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(12, 5))
-        seaborn.violinplot(time_diff[0], ax=ax1)
-        seaborn.violinplot(time_diff[1], ax=ax2)
+        seaborn.violinplot(data=time_diff[0], ax=ax1)
+        seaborn.violinplot(data=time_diff[1], ax=ax2)
         ax1.set_xlabel(str(id1))
         ax2.set_xlabel(str(id2))
         plt.show()
