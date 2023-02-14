@@ -78,8 +78,8 @@ def compute_ppa_size(interation: ORTEGA, plot: bool = True):
         fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(12, 5))
         seaborn.violinplot(data=ellipse_size_collection['size_list1'], ax=ax1)
         seaborn.violinplot(data=ellipse_size_collection['size_list2'], ax=ax2)
-        ax1.set_xticklabels(str(id1))
-        ax2.set_xticklabels(str(id2))
+        ax1.set_xticklabels([str(id1)])
+        ax2.set_xticklabels([str(id2)])
         plt.show()
     return ellipse_size_collection
 
@@ -89,17 +89,17 @@ def compute_ppa_interval(interation: ORTEGA, plot: bool = True):
     id2 = interation.id2
     print("Statistics of PPA ellipses time interval")
     time_diff = [
-        interation.df1[interation.time_field].diff().dt.total_seconds().dropna(),
-        interation.df2[interation.time_field].diff().dt.total_seconds().dropna()
+        interation.df1[interation.time_field].diff().dt.total_seconds().div(60).dropna(),
+        interation.df2[interation.time_field].diff().dt.total_seconds().div(60).dropna()
     ]
-    print(f"id {id1} ellipse time interval (seconds):")
+    print(f"id {id1} time interval (minutes):")
     print(f"Mean:", time_diff[0].mean())
     print(f"Min:", time_diff[0].min())
     print(f"Max:", time_diff[0].max())
     print(f"Median:", time_diff[0].median())
     print(f"Standard deviation:", time_diff[0].std())
 
-    print(f"id {id2} ellipse time interval (seconds):")
+    print(f"id {id2} time interval (minutes):")
     print(f"Mean:", time_diff[1].mean())
     print(f"Min:", time_diff[1].min())
     print(f"Max:", time_diff[1].max())
@@ -109,9 +109,11 @@ def compute_ppa_interval(interation: ORTEGA, plot: bool = True):
     if plot:
         plt.rcParams.update({'font.size': 14})
         fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(12, 5))
-        seaborn.violinplot(data=time_diff[0], ax=ax1)
-        seaborn.violinplot(data=time_diff[1], ax=ax2)
-        ax1.set_xticklabels(str(id1))
-        ax2.set_xticklabels(str(id2))
+        seaborn.violinplot(data=time_diff[0].tolist(), ax=ax1)
+        seaborn.violinplot(data=time_diff[1].tolist(), ax=ax2)
+        ax1.set_xticklabels([str(id1)])
+        ax2.set_xticklabels([str(id2)])
+        ax1.set_ylabel('Interval (min)')
+        ax2.set_ylabel('Interval (min)')
         plt.show()
     return time_diff
