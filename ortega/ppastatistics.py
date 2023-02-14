@@ -97,7 +97,7 @@ def compute_ppa_speed(df: pd.DataFrame, plot: bool = True):
     print(df['diff_speed'].describe())
     if plot:
         plt.rcParams.update({'font.size': 14})
-        ax = seaborn.violinplot(df['diff_speed'])
+        ax = seaborn.violinplot(data=df['diff_speed'])
         ax.set_xticklabels(['diff_speed'])
         plt.show()
     return df
@@ -130,7 +130,7 @@ def compute_ppa_direction(df: pd.DataFrame, plot: bool = True):
 
     if plot:
         plt.rcParams.update({'font.size': 14})
-        ax = seaborn.violinplot(df['diff_angle'])
+        ax = seaborn.violinplot(data=df['diff_angle'])
         ax.set_xticklabels(['diff_direction (degree)'])
         plt.show()
     return df
