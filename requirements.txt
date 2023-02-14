@@ -2,9 +2,6 @@ numpy
 pandas
 attrs
 typing_extensions
-geographiclib
-seaborn
-utm
 cycler==0.11.0
 docutils==0.18.1
 fonttools==4.29.1

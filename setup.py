@@ -3,7 +3,7 @@ from setuptools import setup
 if __name__ == "__main__":
     setup(
         name='ortega',
-        version='0.0.29',
+        version='0.0.30',
         author='MOVE lab@UCSB',
         author_email="rongxiangsu@ucsb.edu",
         packages=["ortega"],
@@ -17,9 +17,6 @@ if __name__ == "__main__":
             "attrs",
             "matplotlib",
             "statistics",
-            "geographiclib",
-            "seaborn",
             "typing_extensions",
-            "utm"
         ],
     )

@@ -4,14 +4,7 @@ import math
 from .common import __timedifcheck
 from .common import __check_dist
 import pandas as pd
-import utm
-
-from geographiclib.geodesic import Geodesic
-Geo = Geodesic.WGS84
-
 # from osgeo import ogr
-# import seaborn
-# import matplotlib.pyplot as plt
 
 
 def compute_ppa_size(interation: ORTEGA):
@@ -33,14 +26,6 @@ def compute_ppa_size(interation: ORTEGA):
     print(f"max:", max(ellipse_size_collection['size_list2']))
     print(f"median:", statistics.median(ellipse_size_collection['size_list2']))
     print(f"std:", statistics.stdev(ellipse_size_collection['size_list2']))
-    # if plot:
-    #     plt.rcParams.update({'font.size': 14})
-    #     fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(12, 5))
-    #     seaborn.violinplot(data=ellipse_size_collection['size_list1'], ax=ax1)
-    #     seaborn.violinplot(data=ellipse_size_collection['size_list2'], ax=ax2)
-    #     ax1.set_xticklabels([str(id1)])
-    #     ax2.set_xticklabels([str(id2)])
-    #     plt.show()
     return ellipse_size_collection
 
 
@@ -64,16 +49,6 @@ def compute_ppa_interval(interation: ORTEGA):
     print(f"max:", time_diff[1].max())
     print(f"median:", time_diff[1].median())
     print(f"std:", time_diff[1].std())
-    # if plot:
-    #     plt.rcParams.update({'font.size': 14})
-    #     fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(12, 5))
-    #     seaborn.violinplot(data=time_diff[0].tolist(), ax=ax1)
-    #     seaborn.violinplot(data=time_diff[1].tolist(), ax=ax2)
-    #     ax1.set_xticklabels([str(id1)])
-    #     ax2.set_xticklabels([str(id2)])
-    #     ax1.set_ylabel('Interval (min)')
-    #     ax2.set_ylabel('Interval (min)')
-    #     plt.show()
     return time_diff
 
 
@@ -81,10 +56,10 @@ def compute_ppa_speed(df: pd.DataFrame):
     def compute_speed(x):
         d1 = __check_dist(x['P1_startlat'], x['P1_startlon'], x['P1_endlat'], x['P1_endlon'])
         delta_time1 = __timedifcheck(x['P1_t_start'], x['P1_t_end'])
-        x['P1_speed'] = d1 / delta_time1
+        x['P1_speed'] = d1 / delta_time1  # speed in m/s
         d2 = __check_dist(x['P2_startlat'], x['P2_startlon'], x['P2_endlat'], x['P2_endlon'])
         delta_time2 = __timedifcheck(x['P2_t_start'], x['P2_t_end'])
-        x['P2_speed'] = d2 / delta_time2 #m/s
+        x['P2_speed'] = d2 / delta_time2  # speed in m/s
         return x
 
     df = df.apply(lambda x: compute_speed(x), axis=1)
@@ -97,13 +72,9 @@ def compute_ppa_speed(df: pd.DataFrame):
 
 def compute_ppa_direction(df: pd.DataFrame):
     def compute_direction(x):
-        p1_start = utm.from_latlon(x['P1_startlat'], x['P1_startlon'])
-        p1_end = utm.from_latlon(x['P1_endlat'], x['P1_endlon'])
         # Angle between p1 and p2 in degree, Difference in x coordinates, Difference in y coordinates
-        x['P1_direction'] = math.degrees(math.atan2(p1_end[0] - p1_start[0], p1_end[1] - p1_start[1]))
-        p2_start = utm.from_latlon(x['P2_startlat'], x['P2_startlon'])
-        p2_end = utm.from_latlon(x['P2_endlat'], x['P2_endlon'])
-        x['P2_direction'] = math.degrees(math.atan2(p2_end[0] - p2_start[0], p2_end[1] - p2_start[1]))
+        x['P1_direction'] = math.degrees(math.atan2(x['P1_endlon'] - x['P1_startlon'], x['P1_endlat'] - x['P1_startlat']))
+        x['P2_direction'] = math.degrees(math.atan2(x['P2_endlon'] - x['P2_startlon'], x['P2_endlat'] - x['P2_startlat']))
         return x
 
     def between_angles(x, a):
@@ -115,10 +86,10 @@ def compute_ppa_direction(df: pd.DataFrame):
         return x
 
     df = df.apply(lambda x: compute_direction(x), axis=1)
-    df['diff_angle'] = df['P2_direction'] - df['P1_direction']
-    df = df.apply(lambda x: between_angles(x, 'diff_angle'), axis=1)
+    df['diff_direction'] = df['P2_direction'] - df['P1_direction']
+    df = df.apply(lambda x: between_angles(x, 'diff_direction'), axis=1)
     print("Statistics of difference in movement direction between intersecting PPAs:")
-    print(df['diff_angle'].describe())
+    print(df['diff_direction'].describe())
     return df
 
 # def output_shapefile(interation: ORTEGA):
