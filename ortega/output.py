@@ -5,11 +5,14 @@ import pandas as pd
 import statistics
 import matplotlib.pyplot as plt
 import seaborn
+from .ortega import ORTEGA
 
 
-def output_shapefile(ellipses_list: List[Ellipse], max_el_time_min: float, id1, id2):
+def output_shapefile(interation: ORTEGA):
     # Now convert it to a shapefile with OGR
     driver = ogr.GetDriverByName('Esri Shapefile')
+    id1 = interation.id1
+    id2 = interation.id2
     ds = driver.CreateDataSource(f"{id1}_{id2}.shp")
     layer = ds.CreateLayer('', None, ogr.wkbPolygon)
     # Add one attribute
@@ -24,8 +27,8 @@ def output_shapefile(ellipses_list: List[Ellipse], max_el_time_min: float, id1, 
     defn = layer.GetLayerDefn()
 
     i = 0
-    for item in ellipses_list:
-        if abs(pd.Timedelta(item.t2 - item.t1).total_seconds()) > max_el_time_min * 60:
+    for item in interation.ellipses_list:
+        if abs(pd.Timedelta(item.t2 - item.t1).total_seconds()) > interation.max_el_time_min * 60:
             continue
         # Create a new feature (attribute and geometry)
         feat = ogr.Feature(defn)
@@ -50,10 +53,12 @@ def output_shapefile(ellipses_list: List[Ellipse], max_el_time_min: float, id1, 
     ds = layer = feat = geom = None
 
 
-def compute_ppa_size(ellipses_list1: List[Ellipse], ellipses_list2: List[Ellipse], id1, id2, plot: bool = True):
+def compute_ppa_size(interation: ORTEGA, plot: bool = True):
     print("Statistics of PPA ellipses size")
-    size_list1 = [e.el[0].length for e in ellipses_list1]
-    size_list2 = [e.el[0].length for e in ellipses_list2]
+    size_list1 = [e.el[0].length for e in interation.ellipses_list_id1]
+    size_list2 = [e.el[0].length for e in interation.ellipses_list_id2]
+    id1 = interation.id1
+    id2 = interation.id2
 
     ellipse_size_collection = {"size_list1": size_list1, "size_list2": size_list2}
     print(f"id {id1} ellipse length:")
@@ -79,11 +84,13 @@ def compute_ppa_size(ellipses_list1: List[Ellipse], ellipses_list2: List[Ellipse
     return ellipse_size_collection
 
 
-def compute_ppa_interval(df1: pd.DataFrame, df2: pd.DataFrame, time_field: str, id1, id2, plot: bool = True):
+def compute_ppa_interval(interation: ORTEGA, plot: bool = True):
+    id1 = interation.id1
+    id2 = interation.id2
     print("Statistics of PPA ellipses time interval")
     time_diff = [
-        df1[time_field].diff().dt.total_seconds().dropna(),
-        df2[time_field].diff().dt.total_seconds().dropna()
+        interation.df1[interation.time_field].diff().dt.total_seconds().dropna(),
+        interation.df2[interation.time_field].diff().dt.total_seconds().dropna()
     ]
     print(f"id {id1} ellipse time interval (seconds):")
     print(f"Mean:", time_diff[0].mean())
