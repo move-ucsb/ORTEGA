@@ -1,56 +1,8 @@
-# from .ellipses import Ellipse
-# from typing import List
-import pandas as pd
 import statistics
 import matplotlib.pyplot as plt
 import seaborn
 from .ortega import ORTEGA
 # from osgeo import ogr
-
-
-# def output_shapefile(interation: ORTEGA):
-#     # Now convert it to a shapefile with OGR
-#     driver = ogr.GetDriverByName('Esri Shapefile')
-#     id1 = interation.id1
-#     id2 = interation.id2
-#     ds = driver.CreateDataSource(f"{id1}_{id2}.shp")
-#     layer = ds.CreateLayer('', None, ogr.wkbPolygon)
-#     # Add one attribute
-#     layer.CreateField(ogr.FieldDefn('pid', ogr.OFTInteger))
-#     layer.CreateField(ogr.FieldDefn('lat', ogr.OFTReal))
-#     layer.CreateField(ogr.FieldDefn('lon', ogr.OFTReal))
-#     layer.CreateField(ogr.FieldDefn('time', ogr.OFTString))
-#     layer.CreateField(ogr.FieldDefn('last_lat', ogr.OFTReal))
-#     layer.CreateField(ogr.FieldDefn('last_lon', ogr.OFTReal))
-#     layer.CreateField(ogr.FieldDefn('last_time', ogr.OFTString))
-#     layer.CreateField(ogr.FieldDefn('ppa_id', ogr.OFTInteger))
-#     defn = layer.GetLayerDefn()
-#
-#     i = 0
-#     for item in interation.ellipses_list:
-#         if abs(pd.Timedelta(item.t2 - item.t1).total_seconds()) > interation.max_el_time_min * 60:
-#             continue
-#         # Create a new feature (attribute and geometry)
-#         feat = ogr.Feature(defn)
-#         i += 1
-#         feat.SetField('pid', item.pid)
-#         feat.SetField('lat', item.lat)
-#         feat.SetField('lon', item.lon)
-#         feat.SetField('last_lat', item.last_lat)
-#         feat.SetField('last_lon', item.last_lon)
-#         feat.SetField('time', str(item.t1))
-#         feat.SetField('last_time', str(item.t2))
-#         # feat.SetField('time', item.t1.year, item.t1.month, item.t1.day, item.t1.hour, item.t1.minute, item.t1.second, 0)
-#         # feat.SetField('last_time', item.t2.year, item.t2.month, item.t2.day, item.t2.hour, item.t2.minute, item.t2.second, 0)
-#         feat.SetField('ppa_id', i)
-#
-#         # Make a geometry, from Shapely object
-#         geom = ogr.CreateGeometryFromWkb(item.geom.wkb)
-#         feat.SetGeometry(geom)
-#         layer.CreateFeature(feat)
-#         feat = geom = None  # destroy these
-#     # Save and close everything
-#     ds = layer = feat = geom = None
 
 
 def compute_ppa_size(interation: ORTEGA, plot: bool = True):
@@ -117,3 +69,49 @@ def compute_ppa_interval(interation: ORTEGA, plot: bool = True):
         ax2.set_ylabel('Interval (min)')
         plt.show()
     return time_diff
+
+
+
+# def output_shapefile(interation: ORTEGA):
+#     # Now convert it to a shapefile with OGR
+#     driver = ogr.GetDriverByName('Esri Shapefile')
+#     id1 = interation.id1
+#     id2 = interation.id2
+#     ds = driver.CreateDataSource(f"{id1}_{id2}.shp")
+#     layer = ds.CreateLayer('', None, ogr.wkbPolygon)
+#     # Add one attribute
+#     layer.CreateField(ogr.FieldDefn('pid', ogr.OFTInteger))
+#     layer.CreateField(ogr.FieldDefn('lat', ogr.OFTReal))
+#     layer.CreateField(ogr.FieldDefn('lon', ogr.OFTReal))
+#     layer.CreateField(ogr.FieldDefn('time', ogr.OFTString))
+#     layer.CreateField(ogr.FieldDefn('last_lat', ogr.OFTReal))
+#     layer.CreateField(ogr.FieldDefn('last_lon', ogr.OFTReal))
+#     layer.CreateField(ogr.FieldDefn('last_time', ogr.OFTString))
+#     layer.CreateField(ogr.FieldDefn('ppa_id', ogr.OFTInteger))
+#     defn = layer.GetLayerDefn()
+#
+#     i = 0
+#     for item in interation.ellipses_list:
+#         if abs(pd.Timedelta(item.t2 - item.t1).total_seconds()) > interation.max_el_time_min * 60:
+#             continue
+#         # Create a new feature (attribute and geometry)
+#         feat = ogr.Feature(defn)
+#         i += 1
+#         feat.SetField('pid', item.pid)
+#         feat.SetField('lat', item.lat)
+#         feat.SetField('lon', item.lon)
+#         feat.SetField('last_lat', item.last_lat)
+#         feat.SetField('last_lon', item.last_lon)
+#         feat.SetField('time', str(item.t1))
+#         feat.SetField('last_time', str(item.t2))
+#         # feat.SetField('time', item.t1.year, item.t1.month, item.t1.day, item.t1.hour, item.t1.minute, item.t1.second, 0)
+#         # feat.SetField('last_time', item.t2.year, item.t2.month, item.t2.day, item.t2.hour, item.t2.minute, item.t2.second, 0)
+#         feat.SetField('ppa_id', i)
+#
+#         # Make a geometry, from Shapely object
+#         geom = ogr.CreateGeometryFromWkb(item.geom.wkb)
+#         feat.SetGeometry(geom)
+#         layer.CreateFeature(feat)
+#         feat = geom = None  # destroy these
+#     # Save and close everything
+#     ds = layer = feat = geom = None

@@ -83,21 +83,21 @@ def intersect_ellipse_todataframe(intersection_df: List[Tuple[Ellipse, Ellipse]]
     )
 
 
-def __remove_largePPA(df: pd.DataFrame, max_el_time_min: float):
-    """
-
-    :param df:
-    :param max_el_time_min:
-    :return:
-    """
-    df['p1diff'] = df['P1_t_end'] - df['P1_t_start']
-    df['p1diff'] = df['p1diff'].dt.total_seconds().div(60)
-    df['p2diff'] = df['P2_t_end'] - df['P2_t_start']
-    df['p2diff'] = df['p2diff'].dt.total_seconds().div(60)
-    df = df[(df['p1diff'] > 0) & (df['p1diff'] < max_el_time_min)]
-    df = df[(df['p2diff'] > 0) & (df['p2diff'] < max_el_time_min)]
-    df = df.sort_values(by=['P1_t_start', 'P2_t_start'])
-    return df
+# def __remove_largePPA(df: pd.DataFrame, max_el_time_min: float):
+#     """
+#
+#     :param df:
+#     :param max_el_time_min:
+#     :return:
+#     """
+#     df['p1diff'] = df['P1_t_end'] - df['P1_t_start']
+#     df['p1diff'] = df['p1diff'].dt.total_seconds().div(60)
+#     df['p2diff'] = df['P2_t_end'] - df['P2_t_start']
+#     df['p2diff'] = df['p2diff'].dt.total_seconds().div(60)
+#     df = df[(df['p1diff'] > 0) & (df['p1diff'] < max_el_time_min)]
+#     df = df[(df['p2diff'] > 0) & (df['p2diff'] < max_el_time_min)]
+#     df = df.sort_values(by=['P1_t_start', 'P2_t_start'])
+#     return df
 
 
 def __merge_continuous_incident(df: pd.DataFrame, id1: int, id2: int):
@@ -147,7 +147,7 @@ def __merge_continuous_incident(df: pd.DataFrame, id1: int, id2: int):
     return df_new[['No', 'P1', 'P2', 'Start', 'End', 'Duration']]
 
 
-def durationEstimator(df: pd.DataFrame, max_el_time_min: float, id1: int, id2: int):
+def durationEstimator(df: pd.DataFrame,  id1: int, id2: int):
     """
     estimate duration of interation
     :param id2:
@@ -156,7 +156,7 @@ def durationEstimator(df: pd.DataFrame, max_el_time_min: float, id1: int, id2: i
     :param max_el_time_min: allowable maximum time interval of PPA in minute
     :return:
     """
-    df = __remove_largePPA(df, max_el_time_min)
+    # df = __remove_largePPA(df, max_el_time_min)
     p1start = df['P1_t_start'].tolist()
     p1end = df['P1_t_end'].tolist()
     p2start = df['P2_t_start'].tolist()
@@ -335,6 +335,7 @@ class ORTEGA:
         """
         private function, only can be called in side the class
         """
+        print(datetime.now(), 'Initializing ORTEGA object...')
         if not is_datetime64_dtype(self.data[self.time_field]):
             raise TypeError("Column 'time_field' is not datetime type! Use pd.to_datetime() to convert to datetime.")
 
@@ -369,26 +370,27 @@ class ORTEGA:
         """
         private method, only can be called inside the class
         """
-
         self.ellipses_list = self.__get_ellipse_list(self.df1, self.df2)  # all ellipses for two objects
         self.ellipses_list_id1 = [i for i in self.ellipses_list if i.pid == self.id1]
         self.ellipses_list_id2 = [i for i in self.ellipses_list if i.pid == self.id2]
+        print(datetime.now(), 'Initialization success!')
 
-        #  list of intersecting ellipses
-        self.all_intersection_pairs = self.__get_spatiotemporal_intersect_pairs()
+    def interaction_analysis(self):
+        #  list of intersecting Ellipse objects
+        print(datetime.now(), 'Implement interaction analysis...')
+        all_intersection_pairs = self.__get_spatiotemporal_intersect_pairs()
 
-        if not self.all_intersection_pairs:
+        if not all_intersection_pairs:
             print(datetime.now(), 'Complete! No interaction found!')
         else:
-            print(datetime.now(), f'Complete! {len(self.all_intersection_pairs)} pairs of interaction found!')
+            print(datetime.now(), f'Complete! {len(all_intersection_pairs)} pairs of intersecting PPAs found!')
 
             # convert the list of intersecting ellipses to dataframe format
-            self.df_all_intersection_pairs = intersect_ellipse_todataframe(self.all_intersection_pairs)
+            df_all_intersection_pairs = intersect_ellipse_todataframe(all_intersection_pairs)
 
             # compute duration of interaction and output as a df
-            self.df_duration = durationEstimator(self.df_all_intersection_pairs, self.max_el_time_min, self.id1,
-                                                 self.id2)
-
+            df_duration = durationEstimator(df_all_intersection_pairs, self.id1, self.id2)
+            return df_all_intersection_pairs, df_duration
 
     def __get_ellipse_list(self, df1: pd.DataFrame, df2: pd.DataFrame):
         """
@@ -397,15 +399,18 @@ class ORTEGA:
         :param df2: a pandas dataframe of GPS points of individual id2
         :return:
         """
-        print(datetime.now(), "Generate PPA list for the two moving entities")
+        print(datetime.now(), "Generate PPA list for the two moving entities...")
         ellipses_list_gen = EllipseList(self.latitude_field, self.longitude_field, self.id_field, self.time_field)
         ellipses_list_gen.generate(df1)  # create PPA for df1
+        print(datetime.now(), "Generating PPA list completed!")
         return ellipses_list_gen.generate(df2)  # append PPA based on df2 to the above ellipses_list_gen object
 
     def __get_spatiotemporal_intersect_pairs(self):
-        print(datetime.now(), "Getting spatial and temporal intersection pairs")
-        return get_spatiotemporal_intersect_pairs(self.ellipses_list_id1, self.ellipses_list_id2,
-                                                  self.minute_delay, self.max_el_time_min)
+        print(datetime.now(), "Getting spatial and temporal intersection pairs...")
+        intersection_pairs = get_spatiotemporal_intersect_pairs(self.ellipses_list_id1, self.ellipses_list_id2,
+                                           self.minute_delay, self.max_el_time_min)
+        print(datetime.now(), "Getting spatial and temporal intersection pairs completed!")
+        return intersection_pairs
 
     # def save_shapefile(self):
     #     output_shapefile(self.ellipses_list, self.max_el_time_min, self.id1, self.id2)
