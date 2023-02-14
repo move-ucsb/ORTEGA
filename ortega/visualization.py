@@ -34,8 +34,8 @@ def plot_original_tracks(interation: ORTEGA, throw_out_big_ellipses: bool = True
                      markersize=1)
 
     # plt.title('')
-    plt.xlabel("Longitude", fontsize=14)
-    plt.ylabel("Latitude", fontsize=14)
+    plt.xlabel("x", fontsize=14)
+    plt.ylabel("y", fontsize=14)
     plt.grid(True)
     if legend:
         color1_patch = mpatches.Patch(color=color1, label=interation.id1)
@@ -79,8 +79,8 @@ def plot_interaction(interation: ORTEGA, all_intersection_pairs: List[Tuple[Elli
             plt.plot([item.lon, item.last_lon], [item.lat, item.last_lat], "o-", color="grey", linewidth=0.5,
                      markersize=1)
     # plt.title('')
-    plt.xlabel("Longitude", fontsize=14)
-    plt.ylabel("Latitude", fontsize=14)
+    plt.xlabel("x", fontsize=14)
+    plt.ylabel("y", fontsize=14)
     plt.grid(True)
     if legend:
         color1_patch = mpatches.Patch(color=color1, label=interation.id1)
