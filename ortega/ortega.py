@@ -373,6 +373,7 @@ class ORTEGA:
         self.ellipses_list = self.__get_ellipse_list(self.df1, self.df2)  # all ellipses for two objects
         self.ellipses_list_id1 = [i for i in self.ellipses_list if i.pid == self.id1]
         self.ellipses_list_id2 = [i for i in self.ellipses_list if i.pid == self.id2]
+        # these do not exclude large PPAs! Only after __get_spatiotemporal_intersect_pairs() we exclude large PPAs
         print(datetime.now(), 'Initialization success!')
 
     def interaction_analysis(self):
@@ -389,8 +390,10 @@ class ORTEGA:
             df_all_intersection_pairs = intersect_ellipse_todataframe(all_intersection_pairs)
 
             # compute duration of interaction and output as a df
+            print(datetime.now(), 'Compute duration of interaction...')
             df_duration = durationEstimator(df_all_intersection_pairs, self.id1, self.id2)
-            return df_all_intersection_pairs, df_duration
+            print(datetime.now(), f'Complete! {df_duration.shape[0]} interaction events identified!')
+            return all_intersection_pairs, df_all_intersection_pairs, df_duration
 
     def __get_ellipse_list(self, df1: pd.DataFrame, df2: pd.DataFrame):
         """

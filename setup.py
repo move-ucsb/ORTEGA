@@ -18,6 +18,7 @@ if __name__ == "__main__":
             "matplotlib",
             "statistics",
             "geographiclib",
-            "seaborn"
+            "seaborn",
+            "typing_extensions"
         ],
     )

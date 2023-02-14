@@ -1,8 +1,11 @@
 import matplotlib.pyplot as plt
-import matplotlib.patches as mpatches
 import pandas as pd
 import numpy as np
 from .ortega import ORTEGA
+from .ellipses import Ellipse
+from typing import List, Tuple
+import matplotlib.patches as mpatches
+
 # from .traj import *
 # from keplergl import KeplerGl
 # from matplotlib.animation import FuncAnimation
@@ -43,7 +46,7 @@ def plot_original_tracks(interation: ORTEGA, throw_out_big_ellipses: bool = True
     plt.show()
 
 
-def plot_interaction(interation: ORTEGA, throw_out_big_ellipses: bool = True,
+def plot_interaction(interation: ORTEGA, all_intersection_pairs: List[Tuple[Ellipse, Ellipse]], throw_out_big_ellipses: bool = True,
                      legend: bool = True, save_plot: bool = False):
     color1 = "#ff0000"  # "#3ABA36" #green #
     color2 = "#0000ff"  # "#ff0000" #red %"#005EFF" #blue #"
@@ -66,7 +69,7 @@ def plot_interaction(interation: ORTEGA, throw_out_big_ellipses: bool = True,
             plt.plot([item.lon, item.last_lon], [item.lat, item.last_lat], "o-", color="grey", linewidth=0.5,
                      markersize=1)
 
-    for two_item in interation.all_intersection_pairs:
+    for two_item in all_intersection_pairs:
         for item in two_item:
             if throw_out_big_ellipses and abs(
                     pd.Timedelta(item.t2 - item.t1).total_seconds()) >= interation.max_el_time_min * 60:
