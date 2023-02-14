@@ -409,12 +409,12 @@ class ORTEGA:
         return get_spatiotemporal_intersect_pairs(self.ellipses_list_id1, self.ellipses_list_id2,
                                                   self.minute_delay, self.max_el_time_min)
 
-    def save_shapefile(self):
-        output_shapefile(self.ellipses_list, self.max_el_time_min, self.id1, self.id2)
-
-    def compute_ppa_size(self):
-        compute_ppa_size(self.ellipses_list_id1, self.ellipses_list_id2, self.id1, self.id2)
-
-    def compute_ppa_interval(self):
-        compute_ppa_interval(self.df1, self.df2, self.time_field, self.id1, self.id2)
+    # def save_shapefile(self):
+    #     output_shapefile(self.ellipses_list, self.max_el_time_min, self.id1, self.id2)
+    #
+    # def compute_ppa_size(self):
+    #     compute_ppa_size(self.ellipses_list_id1, self.ellipses_list_id2, self.id1, self.id2)
+    #
+    # def compute_ppa_interval(self):
+    #     compute_ppa_interval(self.df1, self.df2, self.time_field, self.id1, self.id2)
 
