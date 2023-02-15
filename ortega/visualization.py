@@ -34,8 +34,8 @@ def plot_original_tracks(interation: ORTEGA, throw_out_big_ellipses: bool = True
                      markersize=1)
 
     # plt.title('')
-    plt.xlabel("x", fontsize=14)
-    plt.ylabel("y", fontsize=14)
+    plt.xlabel("X", fontsize=14)
+    plt.ylabel("Y", fontsize=14)
     plt.grid(True)
     if legend:
         color1_patch = mpatches.Patch(color=color1, label=interation.id1)
@@ -79,8 +79,8 @@ def plot_interaction(interation: ORTEGA, all_intersection_pairs: List[Tuple[Elli
             plt.plot([item.lon, item.last_lon], [item.lat, item.last_lat], "o-", color="grey", linewidth=0.5,
                      markersize=1)
     # plt.title('')
-    plt.xlabel("x", fontsize=14)
-    plt.ylabel("y", fontsize=14)
+    plt.xlabel("X", fontsize=14)
+    plt.ylabel("Y", fontsize=14)
     plt.grid(True)
     if legend:
         color1_patch = mpatches.Patch(color=color1, label=interation.id1)
@@ -91,119 +91,119 @@ def plot_interaction(interation: ORTEGA, all_intersection_pairs: List[Tuple[Elli
     plt.show()
 
 
-def visualization_trip(interaction, zoom='auto', height=500):
-    '''
-    The input is the trajectory data and the column name. The output is the
-    visualization result based on kepler
-    Parameters
-    -------
-    interaction :
-
-    zoom : number
-        Map zoom level
-    height : number
-        The height of the map frame
-    Returns
-    -------
-    vmap : keplergl.keplergl.KeplerGl
-        Visualizations provided by keplergl
-    '''
-    print('Processing movement data...')
-    Lng, Lat, ID, timecol = interaction.longitude_field, interaction.latitude_field, interaction.id_field, interaction.time_field
-
-    if interaction.start_time is not None or interaction.end_time is not None:
-        trajdata = interaction.subset
-    else:
-        trajdata = interaction.data
-
-    # clean data
-    trajdata = trajdata[-((trajdata[Lng].isnull()) | (trajdata[Lat].isnull()))]
-    trajdata = trajdata[
-        (trajdata[Lng] >= -180) & (trajdata[Lng] <= 180) & (trajdata[Lat] >= -90) & (trajdata[Lat] <= 90)]
-
-    trajdata[timecol] = pd.to_datetime(trajdata[timecol])
-
-    trajdata = trajdata.sort_values(by=[ID, timecol])
-    traj = points_to_traj(trajdata, col=[Lng, Lat, ID], timecol=timecol)
-    ls = []
-    for i in range(len(traj['features'])):
-        ls.append(traj['features'][i]['geometry']['coordinates'][0])
-        ls.append(traj['features'][i]['geometry']['coordinates'][-1])
-    ls = pd.DataFrame(ls)
-    lon_center, lat_center, starttime = ls[0].mean(), ls[1].mean(), ls[3].min()
-    if zoom == 'auto':
-        lon_min, lon_max = ls[0].quantile(0.05), ls[0].quantile(0.95)
-        zoom = 8.5 - np.log(lon_max - lon_min) / np.log(2)
-    print('Generate visualization...')
-    vmap = KeplerGl(config={
-        "version": "v1",
-        "config":
-            {"visState":
-                {
-                    "filters": [],
-                    "layers": [
-                        {
-                            "id": "hizm36i",
-                            "type": "trip",
-                            "config":
-                                {
-                                    "dataId": "trajectory",
-                                    "label": "trajectory",
-                                    # "color": [255, 255, 255],
-                                    # "highlightColor": [255, 255, 0, 255],
-                                    "columns":
-                                        {
-                                            "geojson": "_geojson"
-                                        },
-                                    "isVisible": True,
-                                    "visConfig": {
-                                        "opacity": 0.8,
-                                        "thickness": 5,
-                                        "colorRange": {
-                                            "name": "ColorBrewer Set1-6",
-                                            "type": "qualitative",
-                                            "category": "ColorBrewer",
-                                            "colors": [
-                                                "#e41a1c",
-                                                "#377eb8",
-                                                "#4daf4a",
-                                                "#984ea3",
-                                                "#ff7f00",
-                                                "#ffff33",
-                                            ],
-                                        },
-                                        "trailLength": 1000,
-                                        "sizeRange": [0, 10],
-                                    },
-                                },
-                            "visualChannels": {
-                                "colorField": {"name": "ID", "type": "integer"},
-                                "colorScale": "quantile",
-                                "sizeField": None,
-                                "sizeScale": "linear",
-                            },
-                        }],
-                    "layerBlending": "additive",
-                    "animationConfig":
-                        {
-                            "currentTime": starttime,
-                            "speed": 0.1
-                        }
-                },
-                "mapState":
-                    {
-                        "bearing": 0,
-                        "latitude": lat_center,
-                        "longitude": lon_center,
-                        "pitch": 0,
-                        "zoom": zoom,
-                    },
-                "mapStyle": {
-                    "styleType": "satellite"  # outdoors, streets
-                }
-            }},
-        data={'trajectory': traj}, height=height)
-    return vmap
+# def visualization_trip(interaction, zoom='auto', height=500):
+#     '''
+#     The input is the trajectory data and the column name. The output is the
+#     visualization result based on kepler
+#     Parameters
+#     -------
+#     interaction :
+#
+#     zoom : number
+#         Map zoom level
+#     height : number
+#         The height of the map frame
+#     Returns
+#     -------
+#     vmap : keplergl.keplergl.KeplerGl
+#         Visualizations provided by keplergl
+#     '''
+#     print('Processing movement data...')
+#     Lng, Lat, ID, timecol = interaction.longitude_field, interaction.latitude_field, interaction.id_field, interaction.time_field
+#
+#     if interaction.start_time is not None or interaction.end_time is not None:
+#         trajdata = interaction.subset
+#     else:
+#         trajdata = interaction.data
+#
+#     # clean data
+#     trajdata = trajdata[-((trajdata[Lng].isnull()) | (trajdata[Lat].isnull()))]
+#     trajdata = trajdata[
+#         (trajdata[Lng] >= -180) & (trajdata[Lng] <= 180) & (trajdata[Lat] >= -90) & (trajdata[Lat] <= 90)]
+#
+#     trajdata[timecol] = pd.to_datetime(trajdata[timecol])
+#
+#     trajdata = trajdata.sort_values(by=[ID, timecol])
+#     traj = points_to_traj(trajdata, col=[Lng, Lat, ID], timecol=timecol)
+#     ls = []
+#     for i in range(len(traj['features'])):
+#         ls.append(traj['features'][i]['geometry']['coordinates'][0])
+#         ls.append(traj['features'][i]['geometry']['coordinates'][-1])
+#     ls = pd.DataFrame(ls)
+#     lon_center, lat_center, starttime = ls[0].mean(), ls[1].mean(), ls[3].min()
+#     if zoom == 'auto':
+#         lon_min, lon_max = ls[0].quantile(0.05), ls[0].quantile(0.95)
+#         zoom = 8.5 - np.log(lon_max - lon_min) / np.log(2)
+#     print('Generate visualization...')
+#     vmap = KeplerGl(config={
+#         "version": "v1",
+#         "config":
+#             {"visState":
+#                 {
+#                     "filters": [],
+#                     "layers": [
+#                         {
+#                             "id": "hizm36i",
+#                             "type": "trip",
+#                             "config":
+#                                 {
+#                                     "dataId": "trajectory",
+#                                     "label": "trajectory",
+#                                     # "color": [255, 255, 255],
+#                                     # "highlightColor": [255, 255, 0, 255],
+#                                     "columns":
+#                                         {
+#                                             "geojson": "_geojson"
+#                                         },
+#                                     "isVisible": True,
+#                                     "visConfig": {
+#                                         "opacity": 0.8,
+#                                         "thickness": 5,
+#                                         "colorRange": {
+#                                             "name": "ColorBrewer Set1-6",
+#                                             "type": "qualitative",
+#                                             "category": "ColorBrewer",
+#                                             "colors": [
+#                                                 "#e41a1c",
+#                                                 "#377eb8",
+#                                                 "#4daf4a",
+#                                                 "#984ea3",
+#                                                 "#ff7f00",
+#                                                 "#ffff33",
+#                                             ],
+#                                         },
+#                                         "trailLength": 1000,
+#                                         "sizeRange": [0, 10],
+#                                     },
+#                                 },
+#                             "visualChannels": {
+#                                 "colorField": {"name": "ID", "type": "integer"},
+#                                 "colorScale": "quantile",
+#                                 "sizeField": None,
+#                                 "sizeScale": "linear",
+#                             },
+#                         }],
+#                     "layerBlending": "additive",
+#                     "animationConfig":
+#                         {
+#                             "currentTime": starttime,
+#                             "speed": 0.1
+#                         }
+#                 },
+#                 "mapState":
+#                     {
+#                         "bearing": 0,
+#                         "latitude": lat_center,
+#                         "longitude": lon_center,
+#                         "pitch": 0,
+#                         "zoom": zoom,
+#                     },
+#                 "mapStyle": {
+#                     "styleType": "satellite"  # outdoors, streets
+#                 }
+#             }},
+#         data={'trajectory': traj}, height=height)
+#     return vmap
 
 # def plot_interaction_animated(all_intersection_pairs: List[Tuple[Ellipse, Ellipse]], ellipses_list_id1: List[Ellipse],
 #                               ellipses_list_id2: List[Ellipse], boundary: [[float, float], [float, float]],
