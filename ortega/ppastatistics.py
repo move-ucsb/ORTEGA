@@ -4,7 +4,6 @@ import math
 from .common import __timedifcheck
 from .common import __check_dist
 import pandas as pd
-# from osgeo import ogr
 
 
 def compute_ppa_size(interation: ORTEGA):
@@ -91,6 +90,9 @@ def compute_ppa_direction(df: pd.DataFrame):
     print("Statistics of difference in movement direction between intersecting PPAs:")
     print(df['diff_direction'].describe())
     return df
+
+
+# from osgeo import ogr
 
 # def output_shapefile(interation: ORTEGA):
 #     # Now convert it to a shapefile with OGR
