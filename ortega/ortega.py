@@ -5,6 +5,7 @@ from typing import List, Tuple
 from .common import __timedifcheck
 from .common import *
 
+
 def __check_spatial_intersect(item: Ellipse, others: Ellipse) -> bool:
     return (
             item.el[0].intersects(others.el[0])
@@ -83,23 +84,6 @@ def intersect_ellipse_todataframe(intersection_df: List[Tuple[Ellipse, Ellipse]]
     )
 
 
-# def __remove_largePPA(df: pd.DataFrame, max_el_time_min: float):
-#     """
-#
-#     :param df:
-#     :param max_el_time_min:
-#     :return:
-#     """
-#     df['p1diff'] = df['P1_t_end'] - df['P1_t_start']
-#     df['p1diff'] = df['p1diff'].dt.total_seconds().div(60)
-#     df['p2diff'] = df['P2_t_end'] - df['P2_t_start']
-#     df['p2diff'] = df['p2diff'].dt.total_seconds().div(60)
-#     df = df[(df['p1diff'] > 0) & (df['p1diff'] < max_el_time_min)]
-#     df = df[(df['p2diff'] > 0) & (df['p2diff'] < max_el_time_min)]
-#     df = df.sort_values(by=['P1_t_start', 'P2_t_start'])
-#     return df
-
-
 def __merge_continuous_incident(df: pd.DataFrame, id1: int, id2: int):
     """
     after estimating duration merge some continuous interaction incidents
@@ -153,10 +137,8 @@ def durationEstimator(df: pd.DataFrame,  id1: int, id2: int):
     :param id2:
     :param id1:
     :param df:
-    :param max_el_time_min: allowable maximum time interval of PPA in minute
     :return:
     """
-    # df = __remove_largePPA(df, max_el_time_min)
     p1start = df['P1_t_start'].tolist()
     p1end = df['P1_t_end'].tolist()
     p2start = df['P2_t_start'].tolist()
