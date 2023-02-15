@@ -170,14 +170,15 @@ class EllipseList:
     def get_last_to_point(self) -> STPoint:
         return STPoint(self.last_lat, self.last_lon, self.last_ts, self.last_id)
 
-    def generate(self, gen_ellipses_for1: pd.DataFrame, max_el_time_min: float, multi_el: float = 1.25):
+    def generate(self, gen_ellipses_for1: pd.DataFrame, max_el_time_min: float = 100000, multi_el: float = 1.25):
         speed_memory = SpeedMemory()
 
         sorted_iter = gen_ellipses_for1.sort_values(self.time_field)
         for _, row in sorted_iter.iterrows():
             if row[self.id_field] == self.last_id:  # make sure still looping the same pid
-                # if abs(pd.Timedelta(row[self.time_field] - self.last_ts).total_seconds()) > max_el_time_min * 60:
-                #     continue
+                if abs(pd.Timedelta(row[self.time_field] - self.last_ts).total_seconds()) > max_el_time_min * 60:
+                    self.set_last(row)
+                    continue
                 p1: STPoint = STPoint.from_row(row, self.latitude_field, self.longitude_field, self.id_field,
                                                self.time_field)
                 p2: STPoint = self.get_last_to_point()
@@ -194,26 +195,3 @@ class EllipseList:
                     print("Can't make ellipse class instance")
             self.set_last(row)
         return self.list
-
-    # def generate2(self, gen_ellipses_for1: pd.DataFrame, multi_el: float = 1.25):
-    #     speed_memory = SpeedMemory()
-    #
-    #     sorted_iter = gen_ellipses_for1.sort_values(self.time_field)
-    #     for _, row in sorted_iter.iterrows():
-    #         if row[self.id_field] == self.last_id:  # make sure still looping the same pid
-    #             p1: STPoint = STPoint.from_row(row, self.latitude_field, self.longitude_field, self.id_field,
-    #                                            self.time_field)
-    #             p2: STPoint = self.get_last_to_point()
-    #             est_speed = p1.average_speed(p2) * multi_el * 3600
-    #             speed_memory.append(est_speed)  # speed averaging to minimize uncertainty and noise effects of
-    #             # movement data
-    #             avg_speed_kern = speed_memory.get_average()
-    #             el = ppa_ellipse(p1, p2, est_speed, avg_speed_kern)
-    #             geom = Polygon(el[0])
-    #             try:
-    #                 self.add_ellipse(el, row, est_speed, geom)
-    #             except Exception as e:
-    #                 print(e)
-    #                 print("Can't make ellipse class instance")
-    #         self.set_last(row)
-    #     return self.list

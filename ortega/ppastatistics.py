@@ -1,4 +1,3 @@
-import statistics
 from .ortega import ORTEGA
 import math
 from .common import __timedifcheck
@@ -9,45 +8,24 @@ import pandas as pd
 def compute_ppa_size(interation: ORTEGA):
     size_list1 = [e.el[0].length for e in interation.ellipses_list_id1]
     size_list2 = [e.el[0].length for e in interation.ellipses_list_id2]
-    id1 = interation.id1
-    id2 = interation.id2
-
-    ellipse_size_collection = {"size_list1": size_list1, "size_list2": size_list2}
-    print(f"Statistics of PPA ellipses length for id {id1}:")
-    print(f"mean:", statistics.mean(ellipse_size_collection['size_list1']))
-    print(f"min:", min(ellipse_size_collection['size_list1']))
-    print(f"max:", max(ellipse_size_collection['size_list1']))
-    print(f"median:", statistics.median(ellipse_size_collection['size_list1']))
-    print(f"std:", statistics.stdev(ellipse_size_collection['size_list1']))
-    print(f"Statistics of PPA ellipses length for id {id2}:")
-    print(f"mean:", statistics.mean(ellipse_size_collection['size_list2']))
-    print(f"min:", min(ellipse_size_collection['size_list2']))
-    print(f"max:", max(ellipse_size_collection['size_list2']))
-    print(f"median:", statistics.median(ellipse_size_collection['size_list2']))
-    print(f"std:", statistics.stdev(ellipse_size_collection['size_list2']))
-    return ellipse_size_collection
+    print(f"Descriptive statistics of PPA ellipses length for id {interation.id1}:")
+    print(pd.Series(size_list1).describe())
+    print(f"Descriptive statistics of PPA ellipses length for id {interation.id2}:")
+    print(pd.Series(size_list2).describe())
+    return [size_list1, size_list2]
 
 
-def compute_ppa_interval(interation: ORTEGA):
-    id1 = interation.id1
-    id2 = interation.id2
-    print(f"Statistics of PPA ellipses time interval (minutes) for id {id1}:")
+def compute_ppa_interval(interaction: ORTEGA):
     time_diff = [
-        interation.df1[interation.time_field].diff().dt.total_seconds().div(60).dropna(),
-        interation.df2[interation.time_field].diff().dt.total_seconds().div(60).dropna()
+        interaction.df1[interaction.time_field].diff().dt.total_seconds().div(60).dropna().loc[
+            lambda x: x <= interaction.max_el_time_min],
+        interaction.df2[interaction.time_field].diff().dt.total_seconds().div(60).dropna().loc[
+            lambda x: x <= interaction.max_el_time_min]
     ]
-    print(f"mean:", time_diff[0].mean())
-    print(f"min:", time_diff[0].min())
-    print(f"max:", time_diff[0].max())
-    print(f"median:", time_diff[0].median())
-    print(f"std:", time_diff[0].std())
-
-    print(f"Statistics of PPA ellipses time interval (minutes) for id {id2}:")
-    print(f"mean:", time_diff[1].mean())
-    print(f"min:", time_diff[1].min())
-    print(f"max:", time_diff[1].max())
-    print(f"median:", time_diff[1].median())
-    print(f"std:", time_diff[1].std())
+    print(f"Descriptive statistics of PPA ellipses time interval (minutes) for id {interaction.id1}:")
+    print(time_diff[0].describe())
+    print(f"Descriptive statistics of PPA ellipses time interval (minutes) for id {interaction.id2}:")
+    print(time_diff[1].describe())
     return time_diff
 
 
@@ -63,8 +41,8 @@ def compute_ppa_speed(df: pd.DataFrame):
 
     df = df.apply(lambda x: compute_speed(x), axis=1)
     df['diff_speed'] = (df['P2_speed'] - df['P1_speed']).abs() / (
-                (df['P1_speed'] + df['P2_speed']) / 2)
-    print("Statistics of percentage difference in movement speed between intersecting PPAs:")
+            (df['P1_speed'] + df['P2_speed']) / 2)
+    print("Descriptive statistics of percentage difference in movement speed between intersecting PPAs:")
     print(df['diff_speed'].describe())
     return df
 
@@ -72,8 +50,10 @@ def compute_ppa_speed(df: pd.DataFrame):
 def compute_ppa_direction(df: pd.DataFrame):
     def compute_direction(x):
         # Angle between p1 and p2 in degree, Difference in x coordinates, Difference in y coordinates
-        x['P1_direction'] = math.degrees(math.atan2(x['P1_endlon'] - x['P1_startlon'], x['P1_endlat'] - x['P1_startlat']))
-        x['P2_direction'] = math.degrees(math.atan2(x['P2_endlon'] - x['P2_startlon'], x['P2_endlat'] - x['P2_startlat']))
+        x['P1_direction'] = math.degrees(
+            math.atan2(x['P1_endlon'] - x['P1_startlon'], x['P1_endlat'] - x['P1_startlat']))
+        x['P2_direction'] = math.degrees(
+            math.atan2(x['P2_endlon'] - x['P2_startlon'], x['P2_endlat'] - x['P2_startlat']))
         return x
 
     def between_angles(x, a):
@@ -87,10 +67,9 @@ def compute_ppa_direction(df: pd.DataFrame):
     df = df.apply(lambda x: compute_direction(x), axis=1)
     df['diff_direction'] = df['P2_direction'] - df['P1_direction']
     df = df.apply(lambda x: between_angles(x, 'diff_direction'), axis=1)
-    print("Statistics of difference in movement direction between intersecting PPAs:")
+    print("Descriptive statistics of difference in movement direction between intersecting PPAs:")
     print(df['diff_direction'].describe())
     return df
-
 
 # from osgeo import ogr
 

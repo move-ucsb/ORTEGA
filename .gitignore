@@ -11,7 +11,7 @@ ortega.egg-info
 .idea
 .DS_store
 example_debug.ipynb
-/tests/test.py
+/tests/test_tiger.py
 /tests/
 /tests/*
-/examples/example_debug_human.ipynb
+/examples/example_debug_human (AAG case study).ipynb
