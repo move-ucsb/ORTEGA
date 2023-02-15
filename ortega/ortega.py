@@ -14,12 +14,6 @@ def __check_spatial_intersect(item: Ellipse, others: Ellipse) -> bool:
     )
 
 
-def __check_temporal_intersect(
-        item: Ellipse, item2: Ellipse, interaction_min_delay: float
-) -> bool:
-    return __timedifcheck(item.t1, item2.t1) <= interaction_min_delay * 60
-
-
 def get_spatiotemporal_intersect_pairs(
         ellipses_list_id1: List[Ellipse], ellipses_list_id2: List[Ellipse],
         interaction_min_delay: float, max_el_time_min: float
@@ -28,7 +22,6 @@ def get_spatiotemporal_intersect_pairs(
     Get spatially and temporally intersect PPA pairs
     :param ellipses_list_id2:
     :param ellipses_list_id1:
-    :param max_el_time_min:
     :param interaction_min_delay:
     :return:
     """
@@ -38,13 +31,12 @@ def get_spatiotemporal_intersect_pairs(
             continue  # May 15,2020: eliminate PPA if the time interval of PPA is too large:
         # if count % 500 == 0:
         # print(f"\r > On item {count} of {len(filtered_list)}", end="")
-
         # temporal intersect
         sub_ellipses_list = []
         for item2 in ellipses_list_id2:
             if __timedifcheck(item2.t1, item2.t2) > max_el_time_min * 60:
                 continue  # eliminate PPA if the time interval of PPA of another individual is too large
-            if __check_temporal_intersect(item, item2, interaction_min_delay):
+            if __timedifcheck(item.t1, item2.t1) <= interaction_min_delay * 60:  # check temporal intersect
                 sub_ellipses_list.append(item2)
 
         if len(sub_ellipses_list) == 0:
@@ -131,7 +123,7 @@ def __merge_continuous_incident(df: pd.DataFrame, id1: int, id2: int):
     return df_new[['No', 'P1', 'P2', 'Start', 'End', 'Duration']]
 
 
-def durationEstimator(df: pd.DataFrame,  id1: int, id2: int):
+def durationEstimator(df: pd.DataFrame, id1: int, id2: int):
     """
     estimate duration of interation
     :param id2:
@@ -365,6 +357,7 @@ class ORTEGA:
 
         if not all_intersection_pairs:
             print(datetime.now(), 'Complete! No interaction found!')
+            return 0, 0, 0
         else:
             print(datetime.now(), f'Complete! {len(all_intersection_pairs)} pairs of intersecting PPAs found!')
 
@@ -386,9 +379,9 @@ class ORTEGA:
         """
         print(datetime.now(), "Generate PPA list for the two moving entities...")
         ellipses_list_gen = EllipseList(self.latitude_field, self.longitude_field, self.id_field, self.time_field)
-        ellipses_list_gen.generate(df1)  # create PPA for df1
+        ellipses_list_gen.generate(df1, self.max_el_time_min)  # create PPA for df1
         print(datetime.now(), "Generating PPA list completed!")
-        return ellipses_list_gen.generate(df2)  # append PPA based on df2 to the above ellipses_list_gen object
+        return ellipses_list_gen.generate(df2, self.max_el_time_min)  # append PPA based on df2 to the above ellipses_list_gen object
 
     def __get_spatiotemporal_intersect_pairs(self):
         print(datetime.now(), "Getting spatial and temporal intersection pairs...")
@@ -405,4 +398,3 @@ class ORTEGA:
     #
     # def compute_ppa_interval(self):
     #     compute_ppa_interval(self.df1, self.df2, self.time_field, self.id1, self.id2)
-

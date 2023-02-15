@@ -33,6 +33,7 @@ def plot_original_tracks(interation: ORTEGA, throw_out_big_ellipses: bool = True
             plt.plot([item.lon, item.last_lon], [item.lat, item.last_lat], "o-", color="grey", linewidth=0.5,
                      markersize=1)
 
+
     # plt.title('')
     plt.xlabel("X", fontsize=14)
     plt.ylabel("Y", fontsize=14)
