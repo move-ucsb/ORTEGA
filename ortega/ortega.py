@@ -165,6 +165,25 @@ def durationEstimator(df: pd.DataFrame, id1: int, id2: int):
     return df_new[['No', 'P1', 'P2', 'Start', 'End', 'Duration']]
 
 
+def interaction_compute_speed_diff(df: pd.DataFrame):
+    df['diff_speed'] = (df['P2_speed'] - df['P1_speed']).abs() / (
+            (df['P1_speed'] + df['P2_speed']) / 2)
+    return df
+
+
+def interaction_compute_direction_diff(df: pd.DataFrame):
+    def between_angles(x, a):
+        if x[a] >= 180:
+            x[a] -= 360
+        if x[a] < -180:
+            x[a] += 360
+        x[a] = abs(x[a])
+        return x
+
+    df['diff_direction'] = df['P2_direction'] - df['P1_direction']
+    df = df.apply(lambda x: between_angles(x, 'diff_direction'), axis=1)
+    return df
+
 class ORTEGA:
     def __init__(
             self,
@@ -358,6 +377,8 @@ class ORTEGA:
 
             # convert the list of intersecting ellipses to dataframe format
             df_all_intersection_pairs = intersect_ellipse_todataframe(all_intersection_pairs)
+            df_all_intersection_pairs = interaction_compute_speed_diff(df_all_intersection_pairs)
+            df_all_intersection_pairs = interaction_compute_direction_diff(df_all_intersection_pairs)
 
             # compute duration of interaction and output as a df
             print(datetime.now(), 'Compute duration of interaction...')
@@ -390,10 +411,36 @@ class ORTEGA:
         return intersection_pairs
 
     def compute_ppa_speed(self):
-        speed_list1 = [e.speed for e in self.ellipses_list_id1]
-        speed_list2 = [e.speed for e in self.ellipses_list_id2]
+        speed_list = [
+            [e.speed for e in self.ellipses_list_id1],
+            [e.speed for e in self.ellipses_list_id2]
+        ]
         print(f"Descriptive statistics of PPA ellipses length for id {self.id1}:")
-        print(pd.Series(speed_list1).describe())
+        print(pd.Series(speed_list[0]).describe())
         print(f"Descriptive statistics of PPA ellipses length for id {self.id2}:")
-        print(pd.Series(speed_list2).describe())
-        return [speed_list1, speed_list2]
+        print(pd.Series(speed_list[1]).describe())
+        return speed_list
+
+    def compute_ppa_size(self):
+        size_list = [
+            [e.el.length for e in self.ellipses_list_id1],
+            [e.el.length for e in self.ellipses_list_id2]
+        ]
+        print(f"Descriptive statistics of PPA ellipses length for id {self.id1}:")
+        print(pd.Series(size_list[0]).describe())
+        print(f"Descriptive statistics of PPA ellipses length for id {self.id2}:")
+        print(pd.Series(size_list[1]).describe())
+        return size_list
+
+    def compute_ppa_interval(self):
+        time_diff = [
+            self.df1[self.time_field].diff().dt.total_seconds().div(60).dropna().loc[
+                lambda x: x <= self.max_el_time_min],
+            self.df2[self.time_field].diff().dt.total_seconds().div(60).dropna().loc[
+                lambda x: x <= self.max_el_time_min]
+        ]
+        print(f"Descriptive statistics of PPA ellipses time interval (minutes) for id {self.id1}:")
+        print(time_diff[0].describe())
+        print(f"Descriptive statistics of PPA ellipses time interval (minutes) for id {self.id2}:")
+        print(time_diff[1].describe())
+        return time_diff
