@@ -60,7 +60,7 @@ def ppa_ellipse(stp1: STPoint, stp2: STPoint, est_speed: float, avg_speed: float
     ply = ellipse_polyline(center, major, minor, angle)
 
     ell = LinearRing(ply)  # creates the PPA ellipse
-    return ell, major  # returns a shapely LinearRing
+    return ell, angle  # returns a shapely LinearRing
 
 
 class SpeedMemory:
@@ -96,7 +96,7 @@ class EllipseDictionary(TypedDict):
 
 @define(frozen=True)
 class Ellipse:
-    el: Tuple[LinearRing, float]
+    el: LinearRing
     lat: float
     lon: float
     last_lat: Union[float, None]
@@ -106,6 +106,7 @@ class Ellipse:
     t1: pd.Timestamp  # current timestamp
     t2: Union[pd.Timestamp, None] = field()  # last point's timestamp
     speed: float
+    direction: float
     geom: Polygon
 
     def to_dict(self) -> EllipseDictionary:
@@ -140,9 +141,10 @@ class EllipseList:
 
     def add_ellipse(
             self,
-            ppa_ellipse: Tuple[LinearRing, float],
+            ppa_ellipse: LinearRing,
             row: Any,
             est_speed: float,
+            direction: float,
             geom: Polygon,
     ):
         new_ellipse = Ellipse(
@@ -156,6 +158,7 @@ class EllipseList:
             row[self.time_field],
             self.last_ts,
             est_speed,
+            direction,
             geom,
         )
 
@@ -186,10 +189,10 @@ class EllipseList:
                 speed_memory.append(est_speed)  # speed averaging to minimize uncertainty and noise effects of
                 # movement data
                 avg_speed_kern = speed_memory.get_average()
-                el = ppa_ellipse(p1, p2, est_speed, avg_speed_kern)
-                geom = Polygon(el[0])
+                el, angle = ppa_ellipse(p1, p2, est_speed, avg_speed_kern)
+                geom = Polygon(el)
                 try:
-                    self.add_ellipse(el, row, est_speed, geom)
+                    self.add_ellipse(el, row, est_speed, angle, geom)
                 except Exception as e:
                     print(e)
                     print("Can't make ellipse class instance")
