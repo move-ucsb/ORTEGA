@@ -17,12 +17,12 @@ class STPoint:
 
     @classmethod
     def from_row(
-        cls,
-        row: Any,
-        latitude_field: str,
-        longitude_field: str,
-        id_field: str,
-        timefield: str,
+            cls,
+            row: Any,
+            latitude_field: str,
+            longitude_field: str,
+            id_field: str,
+            timefield: str,
     ):
         return cls(
             row[latitude_field],
@@ -32,11 +32,11 @@ class STPoint:
         )
 
     def average_speed(
-        self,
-        stp2: STPoint,
-        div_constant: float = 0.000000000000000000000000000000001,
+            self,
+            stp2: STPoint,
+            div_constant: float = 0.000000000000000000000000000000001,
     ):
-        return self.euclidean_distance(stp2) / (self.delta_time(stp2) + div_constant)
+        return self.euclidean_distance(stp2) / (self.delta_time(stp2) + div_constant)  # supposed to be in m/s
 
     def euclidean_distance(self, stp2: STPoint):
         return self.dx_dy_euclidean(stp2)[2]
@@ -48,11 +48,8 @@ class STPoint:
         return dx, dy, dist
 
     def delta_time(self, stp2: STPoint):
-        deltatime = self.time - stp2.time
-        return math.fabs(deltatime.total_seconds())
-
-    def delta_time_hours(self, stp2: STPoint):
-        return self.delta_time(stp2) / 3600
+        delta_time = self.time - stp2.time
+        return math.fabs(delta_time.total_seconds())  # in seconds
 
     def ellipse(self, stp2: STPoint, speed: float):
         """
@@ -61,28 +58,24 @@ class STPoint:
         :param speed:
         :return:
         """
-        dt = self.delta_time_hours(stp2)
+        dt = self.delta_time(stp2)
         dx, dy, dist = self.dx_dy_euclidean(stp2)
 
         # the major axis of the PPA ellipse based on input speed (in time geography this speed is max speed)
         major = dt * speed
-        minor: float = (major**2 - dist**2) ** 0.5
+        minor: float = (major ** 2 - dist ** 2) ** 0.5  # calculate minor axis for the ellipse
 
         if dy == 0:
             dy = 0.1
         if dx == 0:
             dx = 0.1
 
-        yx_ratio = abs(dy / dx)  # absolute value of dy/dx ration
-
-        angle: float = np.rad2deg(math.atan(yx_ratio))
+        angle: float = np.rad2deg(math.atan(abs(dy / dx)))  # angle of the ellipse
 
         if dx * dy < 0:
             # the rotation angle of the PPA ellipse in 2nd and 4th quadrants
             angle = 180 - angle
-
         center = self.mid_point(stp2)
-
         return center, major, minor, angle
 
     def mid_point(self, stp2: STPoint):

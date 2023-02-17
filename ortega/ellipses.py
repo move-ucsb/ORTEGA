@@ -19,7 +19,7 @@ from .STPoint import STPoint
 
 def ellipse_polyline(ptc: Point, major: float, minor: float, angle: float, n: int = 100):
     """
-
+    create polyline (a set of sequential points) for ellipse
     :param ptc:
     :param major:
     :param minor:
@@ -33,7 +33,7 @@ def ellipse_polyline(ptc: Point, major: float, minor: float, angle: float, n: in
     st = np.sin(t)
     ct = np.cos(t)
 
-    angle = np.deg2rad(angle)  # rotation angle of ellipse
+    angle = np.deg2rad(angle)  # rotation angle of ellipse in radius unit
     sa = np.sin(angle)
     ca = np.cos(angle)
 
@@ -141,14 +141,14 @@ class EllipseList:
 
     def add_ellipse(
             self,
-            ppa_ellipse: LinearRing,
+            el: LinearRing,
             row: Any,
             est_speed: float,
             direction: float,
             geom: Polygon,
     ):
         new_ellipse = Ellipse(
-            ppa_ellipse,
+            el,
             row[self.latitude_field],
             row[self.longitude_field],
             self.last_lat,
@@ -174,22 +174,24 @@ class EllipseList:
         return STPoint(self.last_lat, self.last_lon, self.last_ts, self.last_id)
 
     def generate(self, gen_ellipses_for1: pd.DataFrame, max_el_time_min: float = 100000, multi_el: float = 1.25):
-        speed_memory = SpeedMemory()
-
+        # speed_memory = SpeedMemory()
         sorted_iter = gen_ellipses_for1.sort_values(self.time_field)
         for _, row in sorted_iter.iterrows():
             if row[self.id_field] == self.last_id:  # make sure still looping the same pid
-                if abs(pd.Timedelta(row[self.time_field] - self.last_ts).total_seconds()) > max_el_time_min * 60:
+                if abs(pd.Timedelta(row[self.time_field] - self.last_ts).total_seconds()) > max_el_time_min * 60:  # remove large PPAs
                     self.set_last(row)
                     continue
                 p1: STPoint = STPoint.from_row(row, self.latitude_field, self.longitude_field, self.id_field,
                                                self.time_field)
                 p2: STPoint = self.get_last_to_point()
-                est_speed = p1.average_speed(p2) * multi_el * 3600
-                speed_memory.append(est_speed)  # speed averaging to minimize uncertainty and noise effects of
+                est_speed = p1.average_speed(p2) * multi_el
+                if est_speed <= 0:  # if not moving, skip the step of creating PPA
+                    self.set_last(row)
+                    continue
+                # speed_memory.append(est_speed)  # speed averaging to minimize uncertainty and noise effects of
                 # movement data
-                avg_speed_kern = speed_memory.get_average()
-                el, angle = ppa_ellipse(p1, p2, est_speed, avg_speed_kern)
+                # avg_speed_kern = speed_memory.get_average()
+                el, angle = ppa_ellipse(p1, p2, est_speed, est_speed)
                 geom = Polygon(el)
                 try:
                     self.add_ellipse(el, row, est_speed, angle, geom)

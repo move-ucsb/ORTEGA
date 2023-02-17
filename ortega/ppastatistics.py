@@ -6,8 +6,8 @@ import pandas as pd
 
 
 def compute_ppa_size(interation: ORTEGA):
-    size_list1 = [e.el[0].length for e in interation.ellipses_list_id1]
-    size_list2 = [e.el[0].length for e in interation.ellipses_list_id2]
+    size_list1 = [e.el.length for e in interation.ellipses_list_id1]
+    size_list2 = [e.el.length for e in interation.ellipses_list_id2]
     print(f"Descriptive statistics of PPA ellipses length for id {interation.id1}:")
     print(pd.Series(size_list1).describe())
     print(f"Descriptive statistics of PPA ellipses length for id {interation.id2}:")
