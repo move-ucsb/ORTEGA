@@ -53,12 +53,14 @@ def intersect_ellipse_todataframe(intersection_df: List[Tuple[Ellipse, Ellipse]]
 
         return {
             f"P{num}": as_dict["pid"],
-            f"P{num}_t_start": as_dict["t2"],
+            f"P{num}_t_start": as_dict["t0"],
             f"P{num}_t_end": as_dict["t1"],
             f"P{num}_startlat": as_dict["last_lat"],
             f"P{num}_startlon": as_dict["last_lon"],
             f"P{num}_endlat": as_dict["lat"],
-            f"P{num}_endlon": as_dict["lon"]
+            f"P{num}_endlon": as_dict["lon"],
+            f"P{num}_speed": as_dict["speed"],
+            f"P{num}_direction": as_dict["direction"]
         }
 
     return pd.DataFrame(
@@ -386,3 +388,12 @@ class ORTEGA:
                                                                 self.minute_delay)
         print(datetime.now(), "Getting spatial and temporal intersection pairs completed!")
         return intersection_pairs
+
+    def compute_ppa_speed(self):
+        speed_list1 = [e.speed for e in self.ellipses_list_id1]
+        speed_list2 = [e.speed for e in self.ellipses_list_id2]
+        print(f"Descriptive statistics of PPA ellipses length for id {self.id1}:")
+        print(pd.Series(speed_list1).describe())
+        print(f"Descriptive statistics of PPA ellipses length for id {self.id2}:")
+        print(pd.Series(speed_list2).describe())
+        return [speed_list1, speed_list2]

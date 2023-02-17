@@ -86,12 +86,14 @@ class SpeedMemory:
 
 class EllipseDictionary(TypedDict):
     t1: datetime
-    t2: Union[datetime, None]
+    t0: Union[datetime, None]
     pid: int
     lon: float
     lat: float
     last_lon: Union[float, None]
     last_lat: Union[float, None]
+    speed: float
+    direction: float
 
 
 @define(frozen=True)
@@ -104,7 +106,7 @@ class Ellipse:
     pid: int  # current point person id
     last_pid: Union[int, None]  # last point's person id
     t1: pd.Timestamp  # current timestamp
-    t2: Union[pd.Timestamp, None] = field()  # last point's timestamp
+    t0: Union[pd.Timestamp, None] = field()  # last point's timestamp
     speed: float
     direction: float
     geom: Polygon
@@ -112,12 +114,14 @@ class Ellipse:
     def to_dict(self) -> EllipseDictionary:
         return {
             "t1": self.t1,
-            "t2": self.t2,
+            "t0": self.t0,
             "pid": self.pid,
             "lon": self.lon,
             "lat": self.lat,
             "last_lon": self.last_lon,
             "last_lat": self.last_lat,
+            "speed": self.speed,
+            "direction": self.direction
         }
 
 
@@ -178,7 +182,8 @@ class EllipseList:
         sorted_iter = gen_ellipses_for1.sort_values(self.time_field)
         for _, row in sorted_iter.iterrows():
             if row[self.id_field] == self.last_id:  # make sure still looping the same pid
-                if abs(pd.Timedelta(row[self.time_field] - self.last_ts).total_seconds()) > max_el_time_min * 60:  # remove large PPAs
+                if abs(pd.Timedelta(row[
+                                        self.time_field] - self.last_ts).total_seconds()) > max_el_time_min * 60:  # remove large PPAs
                     self.set_last(row)
                     continue
                 p1: STPoint = STPoint.from_row(row, self.latitude_field, self.longitude_field, self.id_field,
