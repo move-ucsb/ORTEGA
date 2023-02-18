@@ -70,6 +70,11 @@ class SpeedMemory:
         self.memory_length = len(kernel)
 
     def append(self, speed: float):
+        """
+
+        :param speed:
+        :return:
+        """
         self.speed.append(speed)
 
     def get_average(self):
