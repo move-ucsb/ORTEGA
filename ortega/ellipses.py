@@ -181,43 +181,36 @@ class EllipseList:
     def get_last_to_point(self) -> STPoint:
         return STPoint(self.last_lat, self.last_lon, self.last_ts, self.last_id)
 
-    def generate(self, gen_ellipses_for1: pd.DataFrame, kernel: List[int], max_el_time_min: float = 100000,
+    def generate(self, gen_ellipses_for1: pd.DataFrame, max_el_time_min: float = 100000,
                  multi_el: float = 1.25):
         """
         Create PPAs based on the following parameters
-        :param kernel:
         :param gen_ellipses_for1: a pd.DataFrame of list of GPS tracking points of a moving object
         :param max_el_time_min:
         :param multi_el:
         :return:
         """
-        speed_memory = SpeedMemory(kernel)
+        # speed_memory = SpeedMemory()
         sorted_iter = gen_ellipses_for1.sort_values(self.time_field)
         for _, row in sorted_iter.iterrows():
             if row[self.id_field] == self.last_id:  # make sure still looping the same pid
                 if abs(pd.Timedelta(row[self.time_field] - self.last_ts).total_seconds()) > max_el_time_min * 60:
                     # remove large PPAs
                     self.set_last(row)
-                    speed_memory = SpeedMemory(kernel)  # clear speed_memory if ever skip a PPA
+                    # speed_memory = SpeedMemory()  # clear speed_memory if ever skip a PPA
                     continue
                 p1: STPoint = STPoint.from_row(row, self.latitude_field, self.longitude_field, self.id_field,
                                                self.time_field)
                 p2: STPoint = self.get_last_to_point()
                 est_speed = p1.average_speed(p2) * multi_el
-                avg_speed_kern = est_speed
                 if est_speed <= 0:  # if not moving, skip the step of creating PPA
                     self.set_last(row)
-                    speed_memory = SpeedMemory(kernel)  # clear speed_memory if ever skip a PPA
+                    # speed_memory = SpeedMemory()  # clear speed_memory if ever skip a PPA
                     continue
-                if kernel is not None:
-                    speed_memory.append(est_speed)  # speed averaging to minimize uncertainty and noise effects of
-                    # movement data (Feb 21, 2023 Rongxiang: I skipped this step for now)
-                    avg_speed_kern = speed_memory.get_average()
-                if avg_speed_kern != est_speed:
-                    print(est_speed, avg_speed_kern)
-                    el, angle = ppa_ellipse(p1, p2, avg_speed_kern)
-                else:
-                    el, angle = ppa_ellipse(p1, p2, est_speed)
+                # speed_memory.append(est_speed)  # speed averaging to minimize uncertainty and noise effects of
+                # movement data (Feb 21, 2023 Rongxiang: speed averaging is not plausible,  I skipped this step for now)
+                # avg_speed_kern = speed_memory.get_average()
+                el, angle = ppa_ellipse(p1, p2, est_speed)
                 geom = Polygon(el)
                 try:
                     self.add_ellipse(el, row, est_speed, angle, geom)
