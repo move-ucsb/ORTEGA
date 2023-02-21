@@ -1,19 +1,15 @@
 from datetime import datetime
 import sys
-
 if sys.version_info >= (3, 8):
     from typing import TypedDict
 else:
     from typing_extensions import TypedDict
-
 from typing import Any, List, Tuple, Union
-
 import numpy as np
 import pandas as pd
 from shapely.geometry.polygon import LinearRing
 from shapely.geometry import Point, Polygon
 from attrs import define, field
-
 from .STPoint import STPoint
 
 
@@ -27,8 +23,8 @@ def ellipse_polyline(ptc: Point, major: float, minor: float, angle: float, n: in
     :param n:
     :return:
     """
-    # Return evenly spaced numbers over a specified interval.
-    t = np.linspace(0, 2 * np.pi, n, endpoint=False)
+
+    t = np.linspace(0, 2 * np.pi, n, endpoint=False) # Return evenly spaced numbers over a specified interval
 
     st = np.sin(t)
     ct = np.cos(t)
@@ -38,6 +34,7 @@ def ellipse_polyline(ptc: Point, major: float, minor: float, angle: float, n: in
     ca = np.cos(angle)
 
     p = np.empty((n, 2))
+
     # divide the major and minor axis by 2.0
     p[:, 0] = ptc.x + major / 2.0 * ca * ct - minor / 2.0 * sa * st
     p[:, 1] = ptc.y + major / 2.0 * sa * ct + minor / 2.0 * ca * st
@@ -60,24 +57,21 @@ def ppa_ellipse(stp1: STPoint, stp2: STPoint, est_speed: float, avg_speed: float
     ply = ellipse_polyline(center, major, minor, angle)
 
     ell = LinearRing(ply)  # creates the PPA ellipse
-    return ell, angle  # returns a shapely LinearRing
+    return ell, angle  # returns a shapely LinearRing and angle of the object
 
 
 class SpeedMemory:
+    #  this class is for averaging speeds of several consecutive PPAs in order to mitigate GPS drift effects
     def __init__(self, kernel: List[int] = [1, 1, 2, 5, 10]):
         self.speed: List[float] = []
         self.kernel = np.asarray(kernel)
         self.memory_length = len(kernel)
 
     def append(self, speed: float):
-        """
-
-        :param speed:
-        :return:
-        """
         self.speed.append(speed)
 
     def get_average(self):
+        #  average speed over a given kernel
         if len(self.speed) < self.memory_length:
             return self.speed[-1]
 
@@ -85,11 +79,11 @@ class SpeedMemory:
         speed_memory_subset_np = np.asarray(subset)
         avg_speed_kern_list = self.kernel * speed_memory_subset_np
         avg_speed_kern = sum(avg_speed_kern_list) / self.kernel.sum()
-
         return avg_speed_kern
 
 
 class EllipseDictionary(TypedDict):
+    #  this is a TypedDict class for creating dataframe of intersecting PPA later
     t1: datetime
     t0: Union[datetime, None]
     pid: int
@@ -103,7 +97,8 @@ class EllipseDictionary(TypedDict):
 
 @define(frozen=True)
 class Ellipse:
-    el: LinearRing
+    #  this is an Ellipse class for PPAs
+    el: LinearRing  # a shapeley LinearRing object to delimit the PPA boundary
     lat: float
     lon: float
     last_lat: Union[float, None]
@@ -112,11 +107,12 @@ class Ellipse:
     last_pid: Union[int, None]  # last point's person id
     t1: pd.Timestamp  # current timestamp
     t0: Union[pd.Timestamp, None] = field()  # last point's timestamp
-    speed: float
-    direction: float
-    geom: Polygon
+    speed: float  # PPA speed
+    direction: float # PPA direction
+    geom: Polygon  # a shapeley Polygon object for PPA (so that we can use geom.within to determine if two PPAs overlap)
 
     def to_dict(self) -> EllipseDictionary:
+        #  return a dict for creating dataframe of intersecting PPA later
         return {
             "t1": self.t1,
             "t0": self.t0,
@@ -131,6 +127,7 @@ class Ellipse:
 
 
 class EllipseList:
+    # save all PPAs of two moving objects as a EllipseList
     def __init__(
             self,
             latitude_field: str,
@@ -183,13 +180,21 @@ class EllipseList:
         return STPoint(self.last_lat, self.last_lon, self.last_ts, self.last_id)
 
     def generate(self, gen_ellipses_for1: pd.DataFrame, max_el_time_min: float = 100000, multi_el: float = 1.25):
+        """
+        Create PPAs based on the following parameters
+        :param gen_ellipses_for1: a pd.DataFrame of list of GPS tracking points of a moving object
+        :param max_el_time_min:
+        :param multi_el:
+        :return:
+        """
         # speed_memory = SpeedMemory()
         sorted_iter = gen_ellipses_for1.sort_values(self.time_field)
         for _, row in sorted_iter.iterrows():
             if row[self.id_field] == self.last_id:  # make sure still looping the same pid
-                if abs(pd.Timedelta(row[
-                                        self.time_field] - self.last_ts).total_seconds()) > max_el_time_min * 60:  # remove large PPAs
+                if abs(pd.Timedelta(row[self.time_field] - self.last_ts).total_seconds()) > max_el_time_min * 60:
+                    # remove large PPAs
                     self.set_last(row)
+                    # speed_memory = SpeedMemory() # Feb 21, 2023 Rongxiang: I have not yet tested this line
                     continue
                 p1: STPoint = STPoint.from_row(row, self.latitude_field, self.longitude_field, self.id_field,
                                                self.time_field)
@@ -197,9 +202,10 @@ class EllipseList:
                 est_speed = p1.average_speed(p2) * multi_el
                 if est_speed <= 0:  # if not moving, skip the step of creating PPA
                     self.set_last(row)
+                    # speed_memory = SpeedMemory() # Feb 21, 2023 Rongxiang: I have not yet tested this line
                     continue
                 # speed_memory.append(est_speed)  # speed averaging to minimize uncertainty and noise effects of
-                # movement data
+                # movement data (Feb 21, 2023 Rongxiang: I skipped this step for now)
                 # avg_speed_kern = speed_memory.get_average()
                 el, angle = ppa_ellipse(p1, p2, est_speed, est_speed)
                 geom = Polygon(el)

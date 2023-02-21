@@ -8,6 +8,12 @@ import matplotlib.patches as mpatches
 
 
 def plot_original_tracks(interation: ORTEGA, save_plot: bool = False):
+    """
+    Visualize the original movement data with PPAs
+    :param interation:
+    :param save_plot:
+    :return:
+    """
     colors = ["#ff0000", "#0000ff"]
     fig = plt.figure(1, figsize=(8, 8), dpi=90)
     for i, collection in enumerate([interation.ellipses_list_id1, interation.ellipses_list_id2]):
@@ -29,6 +35,14 @@ def plot_original_tracks(interation: ORTEGA, save_plot: bool = False):
 
 
 def plot_interaction(interation: ORTEGA, all_intersection_pairs: List[Tuple[Ellipse, Ellipse]], save_plot: bool = False):
+    """
+    Visualize interaction. The PPAs of two moving individuals are shown using red and blue ellipses, respectively.
+    PPA intersections marking potential interactions are highlighted using yellow ellipses.
+    :param interation:
+    :param all_intersection_pairs:
+    :param save_plot:
+    :return:
+    """
     colors = ["#ff0000", "#0000ff"]
     interaction_color = "#f2ff00"  # yellow
     fig = plt.figure(1, figsize=(8, 8), dpi=90)

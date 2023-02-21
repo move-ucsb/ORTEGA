@@ -7,6 +7,12 @@ from .common import *
 
 
 def __check_spatial_intersect(item: Ellipse, others: Ellipse) -> bool:
+    """
+
+    :param item:
+    :param others:
+    :return:
+    """
     return (
             item.el.intersects(others.el)
             or item.geom.within(others.geom)
@@ -48,6 +54,11 @@ def get_spatiotemporal_intersect_pairs(
 
 
 def intersect_ellipse_todataframe(intersection_df: List[Tuple[Ellipse, Ellipse]]):
+    """
+
+    :param intersection_df:
+    :return:
+    """
     def columns_names(e: Ellipse, num: int):
         as_dict = e.to_dict()
 
@@ -73,7 +84,7 @@ def intersect_ellipse_todataframe(intersection_df: List[Tuple[Ellipse, Ellipse]]
 
 def __merge_continuous_incident(df: pd.DataFrame, id1: int, id2: int):
     """
-    after estimating duration merge some continuous interaction incidents
+    Merge continuous interaction incidents after estimating duration
     :param df:
     :param id1:
     :param id2:
@@ -166,13 +177,28 @@ def durationEstimator(df: pd.DataFrame, id1: int, id2: int):
 
 
 def interaction_compute_speed_diff(df: pd.DataFrame):
+    """
+    compute the percentage difference in speed between two moving entities
+    :param df:
+    :return:
+    """
     df['diff_speed'] = (df['P2_speed'] - df['P1_speed']).abs() / (
             (df['P1_speed'] + df['P2_speed']) / 2)
+    # a higher value of percentage difference in speed indicates that two interacting entities move at
+    # more different speeds
     return df
 
 
 def interaction_compute_direction_diff(df: pd.DataFrame):
+    """
+    compute difference in moving direction between two moving entities
+    :param df:
+    :return:
+    """
     def between_angles(x, a):
+        # The difference in movement direction of two interacting entities is between 0 and 180 degrees, with 0
+        # degrees indicating an identical movement direction and 180 degrees indicating a completely opposite
+        # movement direction.
         if x[a] >= 180:
             x[a] -= 360
         if x[a] < -180:
@@ -184,18 +210,20 @@ def interaction_compute_direction_diff(df: pd.DataFrame):
     df = df.apply(lambda x: between_angles(x, 'diff_direction'), axis=1)
     return df
 
+
 class ORTEGA:
+    # ORTEGA is the main class for interaction analysis, users need to initialize this object at the very beginning
     def __init__(
             self,
-            data: pd.DataFrame,
-            minute_delay: float,  # in minute
-            start_time: str = None,  # only select a segment of tracking points for the two moving entities
-            end_time: str = None,
-            max_el_time_min: float = 10000,  # in minute
-            latitude_field: str = "latitude",
-            longitude_field: str = "longitude",
-            id_field: str = "pid",
-            time_field: str = "time_local",  # must include month, day, year, hour, minute, second
+            data: pd.DataFrame,  # movement data of two entities
+            minute_delay: float,  # allowable delay for intersecting PPAs, in minute
+            start_time: str = None,  # use this when users want to select a segment of movement data
+            end_time: str = None,  # use this when users want to select a segment of movement data
+            max_el_time_min: float = 10000,  # PPA's interval greater than this value will be eliminated, in minute
+            latitude_field: str = "latitude",  # specify the latitude field name
+            longitude_field: str = "longitude",  # specify the longitude field name
+            id_field: str = "pid",  # specify the id field name
+            time_field: str = "time_local",  # time_field must include month, day, year, hour, minute, second
     ):
         self.data = data
         self.start_time = start_time
@@ -303,7 +331,7 @@ class ORTEGA:
             try:
                 datetime.strptime(value, '%Y-%m-%d %H:%M:%S')
             except ValueError:
-                raise ValueError("Incorrect 'start_time' format, should be YYYY-MM-DD HH:MM:SS")
+                raise ValueError("Incorrect 'start_time' format! Please use YYYY-MM-DD HH:MM:SS.")
         self._start_time = value
 
     @property
@@ -316,7 +344,7 @@ class ORTEGA:
             try:
                 datetime.strptime(value, '%Y-%m-%d %H:%M:%S')
             except ValueError:
-                raise ValueError("Incorrect 'end_time' format, should be YYYY-MM-DD HH:MM:SS")
+                raise ValueError("Incorrect 'end_time' format! Please use YYYY-MM-DD HH:MM:SS.")
         self._end_time = value
 
     def __validate(self):
@@ -325,7 +353,8 @@ class ORTEGA:
         """
         print(datetime.now(), 'Initializing ORTEGA object...')
         if not is_datetime64_dtype(self.data[self.time_field]):
-            raise TypeError("Column 'time_field' is not datetime type! Use pd.to_datetime() to convert to datetime.")
+            raise TypeError("Column 'time_field' is not datetime type! Please use "
+                            "pd.to_datetime() to convert it to datetime.")
 
         id_list = self.data[self.id_field].unique().tolist()
         if len(id_list) != 2:
@@ -356,7 +385,10 @@ class ORTEGA:
 
     def __start(self):
         """
-        private method, only can be called inside the class
+        create PPAs for two moving objects (private method, only can be called inside the class)
+        ellipses_list: all PPAs for two objects
+        ellipses_list_id1: PPAs for object 1
+        ellipses_list_id2: PPAs for object 2
         """
         self.ellipses_list = self.__get_ellipse_list(self.df1, self.df2)  # all ellipses for two objects
         self.ellipses_list_id1 = [i for i in self.ellipses_list if i.pid == self.id1]
@@ -365,8 +397,9 @@ class ORTEGA:
         print(datetime.now(), 'Initialization success!')
 
     def interaction_analysis(self):
-        #  list of intersecting Ellipse objects
+
         print(datetime.now(), 'Implement interaction analysis...')
+        # get list of intersecting Ellipse objects - all_intersection_pairs
         all_intersection_pairs = self.__get_spatiotemporal_intersect_pairs()
 
         if not all_intersection_pairs:
@@ -375,12 +408,12 @@ class ORTEGA:
         else:
             print(datetime.now(), f'Complete! {len(all_intersection_pairs)} pairs of intersecting PPAs found!')
 
-            # convert the list of intersecting ellipses to dataframe format
+            # convert the list of intersecting ellipses to dataframe format - df_all_intersection_pairs
             df_all_intersection_pairs = intersect_ellipse_todataframe(all_intersection_pairs)
             df_all_intersection_pairs = interaction_compute_speed_diff(df_all_intersection_pairs)
             df_all_intersection_pairs = interaction_compute_direction_diff(df_all_intersection_pairs)
 
-            # compute duration of interaction and output as a df
+            # compute duration of interaction and output as a dataframe - df_duration
             print(datetime.now(), 'Compute duration of interaction...')
             df_duration = durationEstimator(df_all_intersection_pairs, self.id1, self.id2)
             print(datetime.now(), f'Complete! {df_duration.shape[0]} interaction events identified!')
@@ -391,17 +424,17 @@ class ORTEGA:
 
     def __get_ellipse_list(self, df1: pd.DataFrame, df2: pd.DataFrame):
         """
-        Construct PPA ellipse using as input the two dataframes of GPS tracks of two individuals
+        Create PPA ellipses using as input the two dataframes of GPS tracks of two moving objects
         :param df1: a pandas dataframe of GPS points of individual id1
         :param df2: a pandas dataframe of GPS points of individual id2
         :return:
         """
         print(datetime.now(), "Generate PPA list for the two moving entities...")
         ellipses_list_gen = EllipseList(self.latitude_field, self.longitude_field, self.id_field, self.time_field)
-        ellipses_list_gen.generate(df1, self.max_el_time_min)  # create PPA for df1, skip large time interval
+        ellipses_list_gen.generate(df1, self.max_el_time_min)  # create PPA for df1, skip PPAs with large time interval
         print(datetime.now(), "Generating PPA list completed!")
-        return ellipses_list_gen.generate(df2,
-                                          self.max_el_time_min)  # append PPA based on df2 to the above ellipses_list_gen object
+        return ellipses_list_gen.generate(df2, self.max_el_time_min)  # append PPA based on df2 to the above
+        # ellipses_list_gen object
 
     def __get_spatiotemporal_intersect_pairs(self):
         print(datetime.now(), "Getting spatial and temporal intersection pairs...")
