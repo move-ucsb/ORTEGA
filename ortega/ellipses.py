@@ -1,5 +1,6 @@
 from datetime import datetime
 import sys
+
 if sys.version_info >= (3, 8):
     from typing import TypedDict
 else:
@@ -24,7 +25,7 @@ def ellipse_polyline(ptc: Point, major: float, minor: float, angle: float, n: in
     :return:
     """
 
-    t = np.linspace(0, 2 * np.pi, n, endpoint=False) # Return evenly spaced numbers over a specified interval
+    t = np.linspace(0, 2 * np.pi, n, endpoint=False)  # Return evenly spaced numbers over a specified interval
 
     st = np.sin(t)
     ct = np.cos(t)
@@ -42,18 +43,19 @@ def ellipse_polyline(ptc: Point, major: float, minor: float, angle: float, n: in
     return p
 
 
-def ppa_ellipse(stp1: STPoint, stp2: STPoint, est_speed: float, avg_speed: float):
+def ppa_ellipse(stp1: STPoint, stp2: STPoint, est_speed: float):
     """
     Instantiate shapely LinearRing object for PPA
     :param stp1:
     :param stp2:
     :param est_speed:
-    :param avg_speed:
     :return:
     """
-    speed = max(est_speed, avg_speed)
+    # speed = max(est_speed, avg_speed)
+    # [Feb 21, 2023 Rongxiang]: I did not understand why use max, so I comment this line for now
 
-    center, major, minor, angle = stp1.ellipse(stp2, speed)
+    center, major, minor, angle = stp1.ellipse(stp2, est_speed)
+    # print(center, major, minor, angle)
     ply = ellipse_polyline(center, major, minor, angle)
 
     ell = LinearRing(ply)  # creates the PPA ellipse
@@ -62,20 +64,20 @@ def ppa_ellipse(stp1: STPoint, stp2: STPoint, est_speed: float, avg_speed: float
 
 class SpeedMemory:
     #  this class is for averaging speeds of several consecutive PPAs in order to mitigate GPS drift effects
-    def __init__(self, kernel: List[int] = [1, 1, 2, 5, 10]):
+    def __init__(self, kernel: List[int] = None):
         self.speed: List[float] = []
         self.kernel = np.asarray(kernel)
-        self.memory_length = len(kernel)
 
     def append(self, speed: float):
         self.speed.append(speed)
 
     def get_average(self):
         #  average speed over a given kernel
-        if len(self.speed) < self.memory_length:
+        memory_length = len(self.kernel)
+        if len(self.speed) < memory_length:
             return self.speed[-1]
 
-        subset = self.speed[-self.memory_length:]
+        subset = self.speed[-memory_length:]
         speed_memory_subset_np = np.asarray(subset)
         avg_speed_kern_list = self.kernel * speed_memory_subset_np
         avg_speed_kern = sum(avg_speed_kern_list) / self.kernel.sum()
@@ -108,7 +110,7 @@ class Ellipse:
     t1: pd.Timestamp  # current timestamp
     t0: Union[pd.Timestamp, None] = field()  # last point's timestamp
     speed: float  # PPA speed
-    direction: float # PPA direction
+    direction: float  # PPA direction
     geom: Polygon  # a shapeley Polygon object for PPA (so that we can use geom.within to determine if two PPAs overlap)
 
     def to_dict(self) -> EllipseDictionary:
@@ -179,35 +181,43 @@ class EllipseList:
     def get_last_to_point(self) -> STPoint:
         return STPoint(self.last_lat, self.last_lon, self.last_ts, self.last_id)
 
-    def generate(self, gen_ellipses_for1: pd.DataFrame, max_el_time_min: float = 100000, multi_el: float = 1.25):
+    def generate(self, gen_ellipses_for1: pd.DataFrame, kernel: List[int], max_el_time_min: float = 100000,
+                 multi_el: float = 1.25):
         """
         Create PPAs based on the following parameters
+        :param kernel:
         :param gen_ellipses_for1: a pd.DataFrame of list of GPS tracking points of a moving object
         :param max_el_time_min:
         :param multi_el:
         :return:
         """
-        # speed_memory = SpeedMemory()
+        speed_memory = SpeedMemory(kernel)
         sorted_iter = gen_ellipses_for1.sort_values(self.time_field)
         for _, row in sorted_iter.iterrows():
             if row[self.id_field] == self.last_id:  # make sure still looping the same pid
                 if abs(pd.Timedelta(row[self.time_field] - self.last_ts).total_seconds()) > max_el_time_min * 60:
                     # remove large PPAs
                     self.set_last(row)
-                    # speed_memory = SpeedMemory() # Feb 21, 2023 Rongxiang: I have not yet tested this line
+                    speed_memory = SpeedMemory(kernel)  # clear speed_memory if ever skip a PPA
                     continue
                 p1: STPoint = STPoint.from_row(row, self.latitude_field, self.longitude_field, self.id_field,
                                                self.time_field)
                 p2: STPoint = self.get_last_to_point()
                 est_speed = p1.average_speed(p2) * multi_el
+                avg_speed_kern = est_speed
                 if est_speed <= 0:  # if not moving, skip the step of creating PPA
                     self.set_last(row)
-                    # speed_memory = SpeedMemory() # Feb 21, 2023 Rongxiang: I have not yet tested this line
+                    speed_memory = SpeedMemory(kernel)  # clear speed_memory if ever skip a PPA
                     continue
-                # speed_memory.append(est_speed)  # speed averaging to minimize uncertainty and noise effects of
-                # movement data (Feb 21, 2023 Rongxiang: I skipped this step for now)
-                # avg_speed_kern = speed_memory.get_average()
-                el, angle = ppa_ellipse(p1, p2, est_speed, est_speed)
+                if kernel is not None:
+                    speed_memory.append(est_speed)  # speed averaging to minimize uncertainty and noise effects of
+                    # movement data (Feb 21, 2023 Rongxiang: I skipped this step for now)
+                    avg_speed_kern = speed_memory.get_average()
+                if avg_speed_kern != est_speed:
+                    print(est_speed, avg_speed_kern)
+                    el, angle = ppa_ellipse(p1, p2, avg_speed_kern)
+                else:
+                    el, angle = ppa_ellipse(p1, p2, est_speed)
                 geom = Polygon(el)
                 try:
                     self.add_ellipse(el, row, est_speed, angle, geom)

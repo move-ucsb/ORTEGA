@@ -59,6 +59,7 @@ def intersect_ellipse_todataframe(intersection_df: List[Tuple[Ellipse, Ellipse]]
     :param intersection_df:
     :return:
     """
+
     def columns_names(e: Ellipse, num: int):
         as_dict = e.to_dict()
 
@@ -195,6 +196,7 @@ def interaction_compute_direction_diff(df: pd.DataFrame):
     :param df:
     :return:
     """
+
     def between_angles(x, a):
         # The difference in movement direction of two interacting entities is between 0 and 180 degrees, with 0
         # degrees indicating an identical movement direction and 180 degrees indicating a completely opposite
@@ -224,6 +226,7 @@ class ORTEGA:
             longitude_field: str = "longitude",  # specify the longitude field name
             id_field: str = "pid",  # specify the id field name
             time_field: str = "time_local",  # time_field must include month, day, year, hour, minute, second
+            kernel: List[int] = None,  # define a kernel for averaging speed when creating PPA (e.g., [1, 1, 2, 5])
     ):
         self.data = data
         self.start_time = start_time
@@ -234,6 +237,7 @@ class ORTEGA:
         self.time_field = time_field
         self.minute_delay = minute_delay
         self.max_el_time_min = max_el_time_min
+        self.kernel = kernel
         self.__validate()
         self.__start()
 
@@ -431,10 +435,14 @@ class ORTEGA:
         """
         print(datetime.now(), "Generate PPA list for the two moving entities...")
         ellipses_list_gen = EllipseList(self.latitude_field, self.longitude_field, self.id_field, self.time_field)
-        ellipses_list_gen.generate(df1, self.max_el_time_min)  # create PPA for df1, skip PPAs with large time interval
+
+        # create PPA for df1, skip PPAs with large time interval
+        ellipses_list_gen.generate(df1, kernel=self.kernel, max_el_time_min=self.max_el_time_min)
+        # append PPA based on df2 to the above ellipses_list_gen object
+        allPPAlist = ellipses_list_gen.generate(df2, kernel=self.kernel, max_el_time_min=self.max_el_time_min)
         print(datetime.now(), "Generating PPA list completed!")
-        return ellipses_list_gen.generate(df2, self.max_el_time_min)  # append PPA based on df2 to the above
-        # ellipses_list_gen object
+
+        return allPPAlist  # return the whole list of PPAs
 
     def __get_spatiotemporal_intersect_pairs(self):
         print(datetime.now(), "Getting spatial and temporal intersection pairs...")
