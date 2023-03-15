@@ -7,7 +7,7 @@ if __name__ == "__main__":
         author='MOVE lab@UCSB',
         author_email="rongxiangsu@ucsb.edu",
         packages=["ortega"],
-        url='https://move.geog.ucsb.edu/',
+        url='https://github.com/move-ucsb/ORTEGA',
         license='MIT',
         description='ORTEGA',
         install_requires=[
