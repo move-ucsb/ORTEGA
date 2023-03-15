@@ -21,10 +21,10 @@ def plot_original_tracks(interation: ORTEGA, save_plot: bool = False):
             # if throw_out_big_ellipses and item.el[0].length > max_val:
             #     continue
             x, y = item.el.xy
-            plt.plot(y, x, color=colors[i], alpha=0.8, linewidth=1, solid_capstyle="round")
+            plt.plot(y, x, color=colors[i], alpha=0.5, linewidth=1, solid_capstyle="round")
             # PLOT THE POINTS USED TO MAKE THE ELLIPSES, TOO
             plt.plot([item.lon, item.last_lon], [item.lat, item.last_lat], "o-", color="grey", linewidth=0.5,
-                     markersize=1)
+                     alpha=0.5, markersize=1)
     plt.xlabel("X", fontsize=14)
     plt.ylabel("Y", fontsize=14)
     plt.grid(True)
@@ -51,16 +51,14 @@ def plot_interaction(interation: ORTEGA, all_intersection_pairs: List[Tuple[Elli
             # if throw_out_big_ellipses and item.el[0].length > max_val:
             #     continue
             x, y = item.el.xy
-            plt.plot(y, x, color=colors[i], alpha=0.8, linewidth=1, solid_capstyle="round")
+            plt.plot(y, x, color=colors[i], alpha=0.5, linewidth=1, solid_capstyle="round")
             # PLOT THE POINTS USED TO MAKE THE ELLIPSES, TOO
             plt.plot([item.lon, item.last_lon], [item.lat, item.last_lat], "o-", color="grey", linewidth=0.5,
-                     markersize=1)
+                     alpha=0.5, markersize=1)
     for two_item in all_intersection_pairs:
         for item in two_item:
             x1, y1 = item.el.xy
-            plt.plot(y1, x1, color=interaction_color, alpha=0.8, linewidth=1, solid_capstyle="round")
-            plt.plot([item.lon, item.last_lon], [item.lat, item.last_lat], "o-", color="grey", linewidth=0.5,
-                     markersize=1)
+            plt.plot(y1, x1, color=interaction_color, alpha=0.5, linewidth=1, solid_capstyle="round")
     plt.xlabel("X", fontsize=14)
     plt.ylabel("Y", fontsize=14)
     plt.grid(True)
