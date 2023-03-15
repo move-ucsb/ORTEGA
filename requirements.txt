@@ -1,6 +1,6 @@
-numpy
-pandas
-typing_extensions
+numpy>=1.23
+pandas>=1.5
+typing_extensions>=3.10.0.2
 attrs>=22.2.0
 cycler>=0.11.0
 docutils>=0.18.1
