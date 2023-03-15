@@ -197,19 +197,19 @@ def interaction_compute_direction_diff(df: pd.DataFrame):
     :return:
     """
 
-    def between_angles(x, a):
-        # The difference in movement direction of two interacting entities is between 0 and 180 degrees, with 0
-        # degrees indicating an identical movement direction and 180 degrees indicating a completely opposite
-        # movement direction.
-        if x[a] >= 180:
-            x[a] -= 360
-        if x[a] < -180:
-            x[a] += 360
-        x[a] = abs(x[a])
-        return x
+    # def between_angles(x, a):
+    #     # The difference in movement direction of two interacting entities is between 0 and 180 degrees, with 0
+    #     # degrees indicating an identical movement direction and 180 degrees indicating a completely opposite
+    #     # movement direction.
+    #     if x[a] >= 180:
+    #         x[a] -= 360
+    #     if x[a] < -180:
+    #         x[a] += 360
+    #     x[a] = abs(x[a])
+    #     return x
 
     df['diff_direction'] = df['P2_direction'] - df['P1_direction']
-    df = df.apply(lambda x: between_angles(x, 'diff_direction'), axis=1)
+    df['diff_direction'] = df['diff_direction'].apply(math.cos)
     return df
 
 
