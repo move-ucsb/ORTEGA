@@ -61,7 +61,8 @@ def ppa_ellipse(stp1: STPoint, stp2: STPoint, est_speed: float, avg_speed: float
 
 
 class SpeedMemory:
-    #  this class is for averaging speeds of several consecutive PPAs in order to mitigate GPS drift effects
+    # this class is for averaging speeds of several consecutive PPAs in order to mitigate GPS drift effects and
+    # prevent PPA being a beeline between two points
     def __init__(self, kernel: List[int] = [1, 1, 2, 5, 10]):
         self.speed: List[float] = []
         self.kernel = np.asarray(kernel)
@@ -71,14 +72,12 @@ class SpeedMemory:
 
     def get_average(self):
         #  average speed over a given kernel
-        memory_length = len(self.kernel)
+        memory_length = len(self.kernel)  # = 5
         if len(self.speed) < memory_length:
             return self.speed[-1]
 
-        subset = self.speed[-memory_length:]
-        speed_memory_subset_np = np.asarray(subset)
-        avg_speed_kern_list = self.kernel * speed_memory_subset_np
-        avg_speed_kern = sum(avg_speed_kern_list) / self.kernel.sum()
+        speed_memory_subset_np = np.asarray(self.speed[-memory_length:])  # previous 5 speeds
+        avg_speed_kern = sum(self.kernel * speed_memory_subset_np) / self.kernel.sum()
         return avg_speed_kern
 
 
@@ -203,7 +202,8 @@ class EllipseList:
                 p1: STPoint = STPoint.from_row(row, self.latitude_field, self.longitude_field, self.id_field,
                                                self.time_field)
                 p2: STPoint = self.get_last_to_point()
-                est_speed = p1.average_speed(p2) * multi_el
+                inst_speed = p1.average_speed(p2)
+                est_speed = inst_speed * multi_el
                 # if do not apply multi_el for max speed, the resulted PPA will be a beeline between two points
                 if est_speed <= 0:  # if not moving, skip the step of creating PPA
                     self.set_last(row)
@@ -220,7 +220,7 @@ class EllipseList:
                     el, angle = ppa_ellipse(p1, p2, est_speed, est_speed)
                 geom = Polygon(el)
                 try:
-                    self.add_ellipse(el, row, est_speed, angle, geom)
+                    self.add_ellipse(el, row, inst_speed, angle, geom)
                 except Exception as e:
                     print(e)
                     print("Can't make ellipse class instance")
