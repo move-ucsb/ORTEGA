@@ -226,6 +226,7 @@ class ORTEGA:
             longitude_field: str = "longitude",  # specify the longitude field name
             id_field: str = "pid",  # specify the id field name
             time_field: str = "time_local",  # time_field must include month, day, year, hour, minute, second
+            speed_average: bool = False
             # kernel: List[int] = None,  # define a kernel for averaging speed when creating PPA (e.g., [1, 1, 2, 5])
     ):
         self.data = data
@@ -237,6 +238,7 @@ class ORTEGA:
         self.time_field = time_field
         self.minute_delay = minute_delay
         self.max_el_time_min = max_el_time_min
+        self.speed_average = speed_average
         # self.kernel = kernel
         self.__validate()
         self.__start()
@@ -437,9 +439,9 @@ class ORTEGA:
         ellipses_list_gen = EllipseList(self.latitude_field, self.longitude_field, self.id_field, self.time_field)
 
         # create PPA for df1, skip PPAs with large time interval
-        ellipses_list_gen.generate(df1, max_el_time_min=self.max_el_time_min)
+        ellipses_list_gen.generate(df1, max_el_time_min=self.max_el_time_min, speed_average=self.speed_average)
         # append PPA based on df2 to the above ellipses_list_gen object
-        allPPAlist = ellipses_list_gen.generate(df2, max_el_time_min=self.max_el_time_min)
+        allPPAlist = ellipses_list_gen.generate(df2, max_el_time_min=self.max_el_time_min, speed_average=self.speed_average)
         print(datetime.now(), "Generating PPA list completed!")
 
         return allPPAlist  # return the whole list of PPAs
