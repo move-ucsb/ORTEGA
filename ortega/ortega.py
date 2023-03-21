@@ -180,6 +180,7 @@ def durationEstimator(df: pd.DataFrame, id1: int, id2: int):
 def interaction_compute_speed_diff(df: pd.DataFrame):
     """
     compute the percentage difference in speed between two moving entities
+    this speed is based on the instant speed between two points not the average speed over a kernel
     :param df:
     :return:
     """

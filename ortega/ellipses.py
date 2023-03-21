@@ -106,7 +106,7 @@ class Ellipse:
     last_pid: Union[int, None]  # last point's person id
     t1: pd.Timestamp  # current timestamp
     t0: Union[pd.Timestamp, None] = field()  # last point's timestamp
-    speed: float  # PPA speed
+    speed: float  # PPA speed between two consecutive points not the average speed over a few points
     direction: float  # PPA direction
     geom: Polygon  # a shapeley Polygon object for PPA (so that we can use geom.within to determine if two PPAs overlap)
 
