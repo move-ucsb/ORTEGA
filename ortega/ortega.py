@@ -501,6 +501,9 @@ class ORTEGA:
                 self.df1 = self.data[self.data[self.id_field] == self.id1]
                 self.df2 = self.data[self.data[self.id_field] == self.id2]
 
+            if not self.__check_time_lag_and_overlap():
+                raise ValueError(f"Skipping pair {self.id1} and {self.id2} due to time lag greater than {self.minute_max_delay}!")
+
     def __start(self):
         """
         create PPAs for two moving objects (private method, only can be called inside the class)
@@ -542,6 +545,29 @@ class ORTEGA:
                 return results
             else:
                 return None
+
+    def __check_time_lag_and_overlap(self):
+        """
+        Check time overlap and time lag between the movements of two individuals (private method, only can be called inside the class).
+        Returns a boolean value indicating whether the time lag is less than or equal to the allowable maximum delay (True) or not (False).
+        """
+        # Extract the start and end times for each individual
+        start1, end1 = self.df1[self.time_field].min(), self.df1[self.time_field].max()
+        start2, end2 = self.df2[self.time_field].min(), self.df2[self.time_field].max()
+
+        # Calculate the time overlap
+        overlap_start = max(start1, start2)
+        overlap_end = min(end1, end2)
+        overlap_duration = (overlap_end - overlap_start).total_seconds() / 60
+
+        # Check if there is no overlap
+        if overlap_duration <= 0:
+            # Calculate the time lag
+            time_lag = abs((start2 - end1).total_seconds() / 60) if end1 < start2 else abs((start1 - end2).total_seconds() / 60)
+            # Check if time lag is greater than the max delay
+            if time_lag > self.minute_max_delay:
+                return False
+        return True
 
     def __get_ellipse_list(self, df1: pd.DataFrame, df2: pd.DataFrame):
         """
