@@ -307,7 +307,7 @@ def interaction_compute_direction_diff(df: pd.DataFrame):
 
 
 def interaction_compute_time_diff(df:pd.DataFrame):
-    df['diff_time'] = (df['P2_t_start'] - df['P1_t_start'])/ pd.Timedelta(hours=1)
+    df['diff_time'] = (df['P2_t_start'] - df['P1_t_start'])/ pd.Timedelta(minutes=1)
     return df
 
 
@@ -504,14 +504,15 @@ class ORTEGA:
         # these do not exclude large PPAs! Only after __get_spatiotemporal_intersect_pairs() we exclude large PPAs
         print(datetime.now(), 'Initialization success!')
 
-    def continues_analysis(self):
+    def interaction_analysis(self):
         spatial_pairs = self.__get_spatial_intersect_pairs()
         all_intersection_pairs = get_timedelay_pairs(spatial_pairs, self.minute_min_delay, self.minute_max_delay)
 
         if not all_intersection_pairs:
             print(datetime.now(), 'Complete! No interaction found!')
-            return None
+            return None, None, None
         else:
+            print(datetime.now(), f'Complete! {len(all_intersection_pairs)} pairs of intersecting PPAs found!')
 
             # convert the list of intersecting ellipses to dataframe format - df_all_intersection_pairs
             df_all_intersection_pairs = intersect_ellipse_todataframe(all_intersection_pairs)
@@ -522,12 +523,13 @@ class ORTEGA:
             # compute duration of interaction and output as a dataframe - df_duration
             print(datetime.now(), 'Compute continues events...')
             df_continues = check_continuous(df_all_intersection_pairs, self.id1, self.id2)
+            print(datetime.now(), f'Complete! {df_continues.shape[0]} interaction events identified!')
             if df_continues.shape[0] != 0:
-                return df_continues
+                return all_intersection_pairs, df_all_intersection_pairs, df_continues
             else:
-                return None
+                return None, None, None
 
-    def interaction_analysis(self):
+    def interaction_analysis2(self):
 
         print(datetime.now(), 'Implement interaction analysis...')
         # get list of intersecting Ellipse objects - all_intersection_pairs
