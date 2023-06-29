@@ -4,7 +4,7 @@ from pandas.api.types import is_datetime64_dtype
 from typing import List, Tuple
 from .common import __timedifcheck
 from .common import *
-
+from .output import *
 
 def __check_spatial_intersect(item: Ellipse, others: Ellipse) -> bool:
     """
@@ -20,16 +20,16 @@ def __check_spatial_intersect(item: Ellipse, others: Ellipse) -> bool:
     )
 
 
-def get_time_difference(
-        ellipses_list_id1: List[Ellipse], ellipses_list_id2: List[Ellipse]):
-    time_diff = []
-    for count, item in enumerate(ellipses_list_id1, 1):
-        # spatial intersect
-        sub_ellipses_list = []
-        for item2 in ellipses_list_id2:
-            if __check_spatial_intersect(item, item2):
-                time_diff.append(__timedifcheck(item.t1, item2.t1))
-    return time_diff
+# def get_time_difference(
+#         ellipses_list_id1: List[Ellipse], ellipses_list_id2: List[Ellipse]):
+#     time_diff = []
+#     for count, item in enumerate(ellipses_list_id1, 1):
+#         # spatial intersect
+#         sub_ellipses_list = []
+#         for item2 in ellipses_list_id2:
+#             if __check_spatial_intersect(item, item2):
+#                 time_diff.append(__timedifcheck(item.t1, item2.t1))
+#     return time_diff
 
 
 def get_spatial_intersect_pairs(
@@ -306,7 +306,7 @@ def interaction_compute_direction_diff(df: pd.DataFrame):
     return df
 
 
-def interaction_compute_time_diff(df:pd.DataFrame):
+def interaction_compute_time_diff(df: pd.DataFrame):
     df['diff_time'] = (df['P2_t_start'] - df['P1_t_start'])/ pd.Timedelta(minutes=1)
     return df
 
@@ -316,9 +316,8 @@ class ORTEGA:
     def __init__(
             self,
             data: pd.DataFrame,  # movement data of two entities
-            # minute_delay: float,  # allowable delay for intersecting PPAs, in minute
-            minute_min_delay: float = 0,
-            minute_max_delay: float = 0,
+            minute_min_delay: float = 0,  # allowable minimum delay for intersecting PPAs, in minute
+            minute_max_delay: float = 0,  # allowable maximum delay for intersecting PPAs, in minute
             start_time: str = None,  # use this when users want to select a segment of movement data
             end_time: str = None,  # use this when users want to select a segment of movement data
             max_el_time_min: float = 10000,  # PPA's interval greater than this value will be eliminated, in minute
@@ -336,33 +335,38 @@ class ORTEGA:
         self.longitude_field = longitude_field
         self.id_field = id_field
         self.time_field = time_field
-        # self.minute_delay = minute_delay
         self.minute_min_delay = minute_min_delay
         self.minute_max_delay = minute_max_delay
         self.max_el_time_min = max_el_time_min
         self.speed_average = speed_average
         # self.kernel = kernel
         self.__validate()
-
-        # Check time overlap and lag, stop initialization if conditions are not met
-        if not self.check_time_lag_and_overlap():
-            print(f"Skipping pair {self.id1} and {self.id2} due to time lag greater than {self.minute_max_delay}")
-            return
-        
         self.__start()
-    '''
-    @property
-    def minute_delay(self):
-        return self._minute_delay
 
-    @minute_delay.setter
-    def minute_delay(self, value):
+    @property
+    def minute_min_delay(self):
+        return self._minute_min_delay
+
+    @minute_min_delay.setter
+    def minute_min_delay(self, value):
         if not isinstance(value, float) and not isinstance(value, int):
-            raise TypeError("Parameter 'minute_delay' must be numeric!")
+            raise TypeError("Parameter 'minute_min_delay' must be numeric!")
+        if value < 0:
+            raise ValueError("Parameter 'minute_min_delay' must be greater than zero!")
+        self._minute_min_delay = value
+
+    @property
+    def minute_max_delay(self):
+        return self._minute_max_delay
+
+    @minute_max_delay.setter
+    def minute_max_delay(self, value):
+        if not isinstance(value, float) and not isinstance(value, int):
+            raise TypeError("Parameter 'minute_max_delay' must be numeric!")
         if value <= 0:
-            raise ValueError("Parameter 'minute_delay' must be greater than zero!")
-        self._minute_delay = value
-    '''
+            raise ValueError("Parameter 'minute_max_delay' must be greater than zero!")
+        self._minute_max_delay = value
+
     @property
     def max_el_time_min(self):
         return self._max_el_time_min
@@ -496,33 +500,6 @@ class ORTEGA:
             else:
                 self.df1 = self.data[self.data[self.id_field] == self.id1]
                 self.df2 = self.data[self.data[self.id_field] == self.id2]
-                
-
-    def check_time_lag_and_overlap(self):
-        """
-        Check time overlap and time lag between the movements of two individuals (private method, only can be called inside the class).
-        Returns a boolean value indicating whether the time lag is less than or equal to the allowable maximum delay (True) or not (False).
-        """
-        # Extract the start and end times for each individual
-        start1, end1 = self.df1[self.time_field].min(), self.df1[self.time_field].max()
-        start2, end2 = self.df2[self.time_field].min(), self.df2[self.time_field].max()
-
-        # Calculate the time overlap
-        overlap_start = max(start1, start2)
-        overlap_end = min(end1, end2)
-        overlap_duration = (overlap_end - overlap_start).total_seconds() / 60
-
-        # Check if there is no overlap
-        if overlap_duration <= 0:
-            # Calculate the time lag
-            time_lag = abs((start2 - end1).total_seconds() / 60) if end1 < start2 else abs((start1 - end2).total_seconds() / 60)
-
-            # Check if time lag is greater than the max delay
-            if time_lag > self.minute_max_delay:
-                return False
-
-        return True
-    
 
     def __start(self):
         """
@@ -543,8 +520,10 @@ class ORTEGA:
 
         if not all_intersection_pairs:
             print(datetime.now(), 'Complete! No interaction found!')
-            return None, None, None
+            return None
         else:
+            results = ORTEGAResults()
+            results.set_intersection_ellipse_pair(all_intersection_pairs)
             print(datetime.now(), f'Complete! {len(all_intersection_pairs)} pairs of intersecting PPAs found!')
 
             # convert the list of intersecting ellipses to dataframe format - df_all_intersection_pairs
@@ -552,44 +531,17 @@ class ORTEGA:
             df_all_intersection_pairs = interaction_compute_speed_diff(df_all_intersection_pairs)
             df_all_intersection_pairs = interaction_compute_direction_diff(df_all_intersection_pairs)
             df_all_intersection_pairs = interaction_compute_time_diff(df_all_intersection_pairs)
+            results.set_df_all_intersection_pairs(df_all_intersection_pairs)
 
             # compute duration of interaction and output as a dataframe - df_duration
             print(datetime.now(), 'Compute continues events...')
             df_continues = check_continuous(df_all_intersection_pairs, self.id1, self.id2)
             print(datetime.now(), f'Complete! {df_continues.shape[0]} interaction events identified!')
             if df_continues.shape[0] != 0:
-                return all_intersection_pairs, df_all_intersection_pairs, df_continues
+                results.set_df_interaction_events(df_continues)
+                return results
             else:
-                return None, None, None
-
-    def interaction_analysis2(self):
-
-        print(datetime.now(), 'Implement interaction analysis...')
-        # get list of intersecting Ellipse objects - all_intersection_pairs
-        # all_intersection_pairs = self.__get_spatiotemporal_intersect_pairs()
-        spatial_pairs = self.__get_spatial_intersect_pairs()
-        all_intersection_pairs = get_timedelay_pairs(spatial_pairs, self.minute_min_delay, self.minute_max_delay)
-
-        if not all_intersection_pairs:
-            print(datetime.now(), 'Complete! No interaction found!')
-            return None, None, None
-        else:
-            print(datetime.now(), f'Complete! {len(all_intersection_pairs)} pairs of intersecting PPAs found!')
-
-            # convert the list of intersecting ellipses to dataframe format - df_all_intersection_pairs
-            df_all_intersection_pairs = intersect_ellipse_todataframe(all_intersection_pairs)
-            df_all_intersection_pairs = interaction_compute_speed_diff(df_all_intersection_pairs)
-            df_all_intersection_pairs = interaction_compute_direction_diff(df_all_intersection_pairs)
-            df_all_intersection_pairs = interaction_compute_time_diff(df_all_intersection_pairs)
-
-            # compute duration of interaction and output as a dataframe - df_duration
-            print(datetime.now(), 'Compute duration of interaction...')
-            df_duration = durationEstimator(df_all_intersection_pairs, self.id1, self.id2)
-            print(datetime.now(), f'Complete! {df_duration.shape[0]} interaction events identified!')
-            if df_duration.shape[0] != 0:
-                return all_intersection_pairs, df_all_intersection_pairs, df_duration
-            else:
-                return None, None, None
+                return None
 
     def __get_ellipse_list(self, df1: pd.DataFrame, df2: pd.DataFrame):
         """
