@@ -6,6 +6,7 @@ from .common import __timedifcheck
 from .common import *
 from .output import *
 
+
 def __check_spatial_intersect(item: Ellipse, others: Ellipse) -> bool:
     """
     test
@@ -96,10 +97,32 @@ def check_continuous(df: pd.DataFrame, id1: int, id2: int):
     for i in range(1, len(p1start)):
         if datetime.strptime(str(p1start[i]), '%Y-%m-%d %H:%M:%S') == datetime.strptime(str(p1start[i - 1]),
                                                                                         '%Y-%m-%d %H:%M:%S'):
-            continue
+            if datetime.strptime(str(p2start[i]), '%Y-%m-%d %H:%M:%S') == datetime.strptime(str(p2start[i - 1]),
+                                                                                            '%Y-%m-%d %H:%M:%S'):
+                continue
+            elif datetime.strptime(str(p2end[i - 1]), '%Y-%m-%d %H:%M:%S') == datetime.strptime(
+                    str(p2start[i]),'%Y-%m-%d %H:%M:%S') or datetime.strptime(
+                    str(p2start[i - 1]), '%Y-%m-%d %H:%M:%S') == datetime.strptime(str(p2end[i]), '%Y-%m-%d %H:%M:%S'):
+                continue
+            else:
+                p1_end_time.append(p1end[i - 1])
+                p1_end_index.append(i - 1)
+                p1_start_time.append(p1start[i])
+                p1_start_index.append(i)
         elif datetime.strptime(str(p1end[i - 1]), '%Y-%m-%d %H:%M:%S') == datetime.strptime(str(p1start[i]),
                                                                                         '%Y-%m-%d %H:%M:%S'):
-            continue
+            if datetime.strptime(str(p2start[i]), '%Y-%m-%d %H:%M:%S') == datetime.strptime(str(p2start[i - 1]),
+                                                                                            '%Y-%m-%d %H:%M:%S'):
+                continue
+            elif datetime.strptime(str(p2end[i - 1]), '%Y-%m-%d %H:%M:%S') == datetime.strptime(
+                    str(p2start[i]), '%Y-%m-%d %H:%M:%S') or datetime.strptime(
+                    str(p2start[i - 1]), '%Y-%m-%d %H:%M:%S') == datetime.strptime(str(p2end[i]), '%Y-%m-%d %H:%M:%S'):
+                continue
+            else:
+                p1_end_time.append(p1end[i - 1])
+                p1_end_index.append(i - 1)
+                p1_start_time.append(p1start[i])
+                p1_start_index.append(i)
         else:
             p1_end_time.append(p1end[i - 1])
             p1_end_index.append(i - 1)
@@ -501,6 +524,7 @@ class ORTEGA:
                 self.df1 = self.data[self.data[self.id_field] == self.id1]
                 self.df2 = self.data[self.data[self.id_field] == self.id2]
 
+            # Check time overlap and lag, stop initialization if conditions are not met
             if not self.__check_time_lag_and_overlap():
                 raise ValueError(f"Skipping pair {self.id1} and {self.id2} due to time lag greater than {self.minute_max_delay}!")
 
@@ -542,6 +566,36 @@ class ORTEGA:
             print(datetime.now(), f'Complete! {df_continues.shape[0]} interaction events identified!')
             if df_continues.shape[0] != 0:
                 results.set_df_interaction_events(df_continues)
+                return results
+            else:
+                return None
+
+    def interaction_analysis2(self):
+        # old method， voided but just keep it for reference
+        print(datetime.now(), 'Implement interaction analysis...')
+        spatial_pairs = self.__get_spatial_intersect_pairs()
+        all_intersection_pairs = get_timedelay_pairs(spatial_pairs, self.minute_min_delay, self.minute_max_delay)
+        if not all_intersection_pairs:
+            print(datetime.now(), 'Complete! No interaction found!')
+            return None
+        else:
+            print(datetime.now(), f'Complete! {len(all_intersection_pairs)} pairs of intersecting PPAs found!')
+            results = ORTEGAResults()
+            results.set_intersection_ellipse_pair(all_intersection_pairs)
+
+            # convert the list of intersecting ellipses to dataframe format - df_all_intersection_pairs
+            df_all_intersection_pairs = intersect_ellipse_todataframe(all_intersection_pairs)
+            df_all_intersection_pairs = interaction_compute_speed_diff(df_all_intersection_pairs)
+            df_all_intersection_pairs = interaction_compute_direction_diff(df_all_intersection_pairs)
+            df_all_intersection_pairs = interaction_compute_time_diff(df_all_intersection_pairs)
+            results.set_df_all_intersection_pairs(df_all_intersection_pairs)
+
+            # compute duration of interaction and output as a dataframe - df_duration
+            print(datetime.now(), 'Compute duration of interaction...')
+            df_duration = durationEstimator(df_all_intersection_pairs, self.id1, self.id2)
+            print(datetime.now(), f'Complete! {df_duration.shape[0]} interaction events identified!')
+            if df_duration.shape[0] != 0:
+                results.set_df_interaction_events(df_duration)
                 return results
             else:
                 return None
