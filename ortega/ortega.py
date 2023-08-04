@@ -66,15 +66,15 @@ def intersect_ellipse_todataframe(intersection_df: List[Tuple[Ellipse, Ellipse]]
         as_dict = e.to_dict()
 
         return {
-            f"P{num}": as_dict["pid"],
-            f"P{num}_t_start": as_dict["t0"],
-            f"P{num}_t_end": as_dict["t1"],
-            f"P{num}_startlat": as_dict["last_lat"],
-            f"P{num}_startlon": as_dict["last_lon"],
-            f"P{num}_endlat": as_dict["lat"],
-            f"P{num}_endlon": as_dict["lon"],
-            f"P{num}_speed": as_dict["speed"],
-            f"P{num}_direction": as_dict["direction"]
+            f"p{num}": as_dict["pid"],
+            f"p{num}_t_start": as_dict["t0"],
+            f"p{num}_t_end": as_dict["t1"],
+            f"p{num}_startlat": as_dict["last_lat"],
+            f"p{num}_startlon": as_dict["last_lon"],
+            f"p{num}_endlat": as_dict["lat"],
+            f"p{num}_endlon": as_dict["lon"],
+            f"p{num}_speed": as_dict["speed"],
+            f"p{num}_direction": as_dict["direction"]
         }
 
     return pd.DataFrame(
@@ -86,10 +86,10 @@ def intersect_ellipse_todataframe(intersection_df: List[Tuple[Ellipse, Ellipse]]
 
 
 def check_continuous(df: pd.DataFrame, id1: int, id2: int):
-    p1start = df['P1_t_start'].tolist()
-    p1end = df['P1_t_end'].tolist()
-    p2start = df['P2_t_start'].tolist()
-    p2end = df['P2_t_end'].tolist()
+    p1start = df['p1_t_start'].tolist()
+    p1end = df['p1_t_end'].tolist()
+    p2start = df['p2_t_start'].tolist()
+    p2end = df['p2_t_end'].tolist()
     p1_start_time, p1_end_time, p2_start_time, p2_end_time = [], [], [], []
     p1_start_index, p1_end_index = [], []
     p1_start_time.append(p1start[0])
@@ -173,15 +173,17 @@ def check_continuous(df: pd.DataFrame, id1: int, id2: int):
             p2_start_column.append((p2_start_time_list[i])[j])
             p2_end_column.append((p2_end_time_list[i])[j])
 
-    d = {'P1 start': p1_start_column, 'P1 end': p1_end_column,
-         'P2 start': p2_start_column, 'P2 end': p2_end_column}
+    d = {'p1_start': p1_start_column, 'p1_end': p1_end_column,
+         'p2_start': p2_start_column, 'p2_end': p2_end_column}
     df_new = pd.DataFrame(d)
     diff_list = []
     for i in range(0, len(p1_start_column)):
         diff = pd.Timedelta(p2_start_column[i] - p1_start_column[i]).total_seconds()/60
         diff_list.append(diff)
-    df_new['Difference'] = diff_list
-    return df_new
+    df_new['difference'] = diff_list
+    df_new['p1'] = id1
+    df_new['p2'] = id2
+    return df_new[['p1', 'p2', 'p1_start', 'p1_end', 'p2_start', 'p2_end', 'difference']]
 
 
 def __merge_continuous_incident(df: pd.DataFrame, id1: int, id2: int):
@@ -192,8 +194,8 @@ def __merge_continuous_incident(df: pd.DataFrame, id1: int, id2: int):
     :param id2:
     :return:
     """
-    pstart = df['Start'].tolist()
-    pend = df['End'].tolist()
+    pstart = df['start'].tolist()
+    pend = df['end'].tolist()
     finalstart, finalend = [], []
     tag = []
     for i in range(0, len(pstart) - 1):
@@ -222,13 +224,13 @@ def __merge_continuous_incident(df: pd.DataFrame, id1: int, id2: int):
         finalstart.append(min(item))
         finalend.append(max(item))
 
-    df_new = pd.DataFrame(list(zip(finalstart, finalend)), columns=['Start', 'End'])
-    df_new['P1'] = id1
-    df_new['P2'] = id2
-    df_new['No'] = np.arange(df_new.shape[0]) + 1
-    df_new['Duration'] = df_new['End'] - df_new['Start']
-    df_new['Duration'] = df_new['Duration'].dt.total_seconds().div(60)
-    return df_new[['No', 'P1', 'P2', 'Start', 'End', 'Duration']]
+    df_new = pd.DataFrame(list(zip(finalstart, finalend)), columns=['start', 'end'])
+    df_new['p1'] = id1
+    df_new['p2'] = id2
+    df_new['no'] = np.arange(df_new.shape[0]) + 1
+    df_new['duration'] = df_new['ed'] - df_new['start']
+    df_new['duration'] = df_new['duration'].dt.total_seconds().div(60)
+    return df_new[['no', 'p1', 'p2', 'start', 'end', 'duration']]
 
 
 def durationEstimator(df: pd.DataFrame, id1: int, id2: int):
@@ -239,12 +241,12 @@ def durationEstimator(df: pd.DataFrame, id1: int, id2: int):
     :param df:
     :return:
     """
-    p1start = df['P1_t_start'].tolist()
-    p1end = df['P1_t_end'].tolist()
-    p2start = df['P2_t_start'].tolist()
-    p2end = df['P2_t_end'].tolist()
+    p1start = df['p1_t_start'].tolist()
+    p1end = df['p1_t_end'].tolist()
+    p2start = df['p2_t_start'].tolist()
+    p2end = df['p2_t_end'].tolist()
     final_start, final_end, subsequenceOfInteraction = [], [], []
-    time_difference = [(df['P2_t_start'] - df['P1_t_start']) / pd.Timedelta(hours=1)]
+    time_difference = [(df['p2_t_start'] - df['p1_t_start']) / pd.Timedelta(hours=1)]
     time_group, diff_mean = [], []
     for i in range(0, len(p1start) - 1):  # identify subsequence of continuous interaction
         if datetime.strptime(str(p1start[i]), '%Y-%m-%d %H:%M:%S') == datetime.strptime(str(p1start[i + 1]),
@@ -281,15 +283,15 @@ def durationEstimator(df: pd.DataFrame, id1: int, id2: int):
             [p1start[i], p1end[i], p2start[i], p2end[i]])  # append all time in a candidate pool
         final_start.append(min(subsequenceOfInteraction))
         final_end.append(max(subsequenceOfInteraction))
-    df_new = pd.DataFrame(list(zip(final_start, final_end)), columns=['Start', 'End'])
-    df_new['P1'] = id1
-    df_new['P2'] = id2
-    df_new['No'] = np.arange(df_new.shape[0]) + 1
-    df_new['Duration'] = df_new['End'] - df_new['Start']
-    df_new['Duration'] = df_new['Duration'].dt.total_seconds().div(60)
+    df_new = pd.DataFrame(list(zip(final_start, final_end)), columns=['start', 'end'])
+    df_new['p1'] = id1
+    df_new['p2'] = id2
+    df_new['no'] = np.arange(df_new.shape[0]) + 1
+    df_new['duration'] = df_new['end'] - df_new['start']
+    df_new['duration'] = df_new['duration'].dt.total_seconds().div(60)
     df_new = __merge_continuous_incident(df_new, id1, id2)
     #df_new['Mean_delay'] = diff_mean
-    return df_new[['No', 'P1', 'P2', 'Start', 'End', 'Duration']]
+    return df_new[['no', 'p1', 'p2', 'start', 'end', 'duration']]
 
 
 def interaction_compute_speed_diff(df: pd.DataFrame):
@@ -299,8 +301,8 @@ def interaction_compute_speed_diff(df: pd.DataFrame):
     :param df:
     :return:
     """
-    df['diff_speed'] = (df['P2_speed'] - df['P1_speed']).abs() / (
-            (df['P1_speed'] + df['P2_speed']) / 2)
+    df['diff_speed'] = (df['p2_speed'] - df['p1_speed']).abs() / (
+            (df['p1_speed'] + df['p2_speed']) / 2)
     # a higher value of percentage difference in speed indicates that two interacting entities move at
     # more different speeds
     return df
@@ -324,13 +326,13 @@ def interaction_compute_direction_diff(df: pd.DataFrame):
     #     x[a] = abs(x[a])
     #     return x
 
-    df['diff_direction'] = df['P2_direction'] - df['P1_direction']
+    df['diff_direction'] = df['p2_direction'] - df['p1_direction']
     df['diff_direction'] = df['diff_direction'].apply(math.cos)
     return df
 
 
 def interaction_compute_time_diff(df: pd.DataFrame):
-    df['diff_time'] = (df['P2_t_start'] - df['P1_t_start'])/ pd.Timedelta(minutes=1)
+    df['diff_time'] = (df['p2_t_start'] - df['p1_t_start'])/ pd.Timedelta(minutes=1)
     return df
 
 
@@ -561,9 +563,9 @@ class ORTEGA:
             results.set_df_all_intersection_pairs(df_all_intersection_pairs)
 
             # compute duration of interaction and output as a dataframe - df_duration
-            print(datetime.now(), 'Compute continues events...')
+            print(datetime.now(), 'Compute continuous interaction events...')
             df_continues = check_continuous(df_all_intersection_pairs, self.id1, self.id2)
-            print(datetime.now(), f'Complete! {df_continues.shape[0]} interaction events identified!')
+            print(datetime.now(), f'Complete! {df_continues.shape[0]} continuous interaction events identified!')
             if df_continues.shape[0] != 0:
                 results.set_df_interaction_events(df_continues)
                 return results

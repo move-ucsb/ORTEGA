@@ -25,5 +25,7 @@ class ORTEGAResults:
         self.df_interaction_events = row
 
     def compute_interaction_duration(self):
-        self.df_interaction_events['Duration'] = self.df_interaction_events[["P1 end", "P2 end"]].max(axis=1) - self.df_interaction_events[["P1 start", "P2 start"]].min(axis=1)
-        self.df_interaction_events['Duration'] = self.df_interaction_events['Duration'].dt.total_seconds().div(60)
+        self.df_interaction_events['duration'] = self.df_interaction_events[["p1_end", "p2_end"]].max(axis=1) - self.df_interaction_events[["p1_start", "p2_start"]].min(axis=1)
+        self.df_interaction_events['duration'] = self.df_interaction_events['duration'].dt.total_seconds().div(60)
+        print(datetime.now(), f'Computing interaction duration complete!')
+
