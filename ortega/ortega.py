@@ -186,112 +186,112 @@ def check_continuous(df: pd.DataFrame, id1: int, id2: int):
     return df_new[['p1', 'p2', 'p1_start', 'p1_end', 'p2_start', 'p2_end', 'difference']]
 
 
-def __merge_continuous_incident(df: pd.DataFrame, id1: int, id2: int):
-    """
-    Merge continuous interaction incidents after estimating duration
-    :param df:
-    :param id1:
-    :param id2:
-    :return:
-    """
-    pstart = df['start'].tolist()
-    pend = df['end'].tolist()
-    finalstart, finalend = [], []
-    tag = []
-    for i in range(0, len(pstart) - 1):
-        if pend[i] >= pstart[i + 1]:
-            tag.append(1)
-        else:
-            tag.append(0)
-    tag.append(0)
-    df['tag'] = tag
-    finalsub, subq = [], []
-    j = 0
-    while j < len(tag):
-        if tag[j] == 1 and tag[j + 1] == 1:
-            subq.extend([pstart[j], pend[j], pstart[j + 1], pend[j + 1]])
-            j += 1
-        elif tag[j] == 1 and tag[j + 1] == 0:
-            subq.extend([pstart[j], pend[j], pstart[j + 1], pend[j + 1]])
-        else:
-            if len(subq) != 0:
-                finalsub.append(subq)
-            else:
-                finalsub.append([pstart[j], pend[j]])
-            subq = []
-        j += 1
-    for item in finalsub:
-        finalstart.append(min(item))
-        finalend.append(max(item))
+# def __merge_continuous_incident(df: pd.DataFrame, id1: int, id2: int):
+#     """
+#     Merge continuous interaction incidents after estimating duration
+#     :param df:
+#     :param id1:
+#     :param id2:
+#     :return:
+#     """
+#     pstart = df['start'].tolist()
+#     pend = df['end'].tolist()
+#     finalstart, finalend = [], []
+#     tag = []
+#     for i in range(0, len(pstart) - 1):
+#         if pend[i] >= pstart[i + 1]:
+#             tag.append(1)
+#         else:
+#             tag.append(0)
+#     tag.append(0)
+#     df['tag'] = tag
+#     finalsub, subq = [], []
+#     j = 0
+#     while j < len(tag):
+#         if tag[j] == 1 and tag[j + 1] == 1:
+#             subq.extend([pstart[j], pend[j], pstart[j + 1], pend[j + 1]])
+#             j += 1
+#         elif tag[j] == 1 and tag[j + 1] == 0:
+#             subq.extend([pstart[j], pend[j], pstart[j + 1], pend[j + 1]])
+#         else:
+#             if len(subq) != 0:
+#                 finalsub.append(subq)
+#             else:
+#                 finalsub.append([pstart[j], pend[j]])
+#             subq = []
+#         j += 1
+#     for item in finalsub:
+#         finalstart.append(min(item))
+#         finalend.append(max(item))
+#
+#     df_new = pd.DataFrame(list(zip(finalstart, finalend)), columns=['start', 'end'])
+#     df_new['p1'] = id1
+#     df_new['p2'] = id2
+#     df_new['no'] = np.arange(df_new.shape[0]) + 1
+#     df_new['duration'] = df_new['ed'] - df_new['start']
+#     df_new['duration'] = df_new['duration'].dt.total_seconds().div(60)
+#     return df_new[['no', 'p1', 'p2', 'start', 'end', 'duration']]
 
-    df_new = pd.DataFrame(list(zip(finalstart, finalend)), columns=['start', 'end'])
-    df_new['p1'] = id1
-    df_new['p2'] = id2
-    df_new['no'] = np.arange(df_new.shape[0]) + 1
-    df_new['duration'] = df_new['ed'] - df_new['start']
-    df_new['duration'] = df_new['duration'].dt.total_seconds().div(60)
-    return df_new[['no', 'p1', 'p2', 'start', 'end', 'duration']]
 
-
-def durationEstimator(df: pd.DataFrame, id1: int, id2: int):
-    """
-    estimate duration of interation
-    :param id2:
-    :param id1:
-    :param df:
-    :return:
-    """
-    p1start = df['p1_t_start'].tolist()
-    p1end = df['p1_t_end'].tolist()
-    p2start = df['p2_t_start'].tolist()
-    p2end = df['p2_t_end'].tolist()
-    final_start, final_end, subsequenceOfInteraction = [], [], []
-    time_difference = [(df['p2_t_start'] - df['p1_t_start']) / pd.Timedelta(hours=1)]
-    time_group, diff_mean = [], []
-    for i in range(0, len(p1start) - 1):  # identify subsequence of continuous interaction
-        if datetime.strptime(str(p1start[i]), '%Y-%m-%d %H:%M:%S') == datetime.strptime(str(p1start[i + 1]),
-                                                                                        '%Y-%m-%d %H:%M:%S'):
-            subsequenceOfInteraction.extend([p1start[i], p1end[i], p1end[i + 1], p2start[i], p2end[i], p2start[i + 1],
-                                             p2end[i + 1]])  # append all time in a candidate pool
-            time_group.append(time_difference[0][i])
-
-        elif datetime.strptime(str(p1end[i]), '%Y-%m-%d %H:%M:%S') == datetime.strptime(str(p1start[i + 1]),
-                                                                                        '%Y-%m-%d %H:%M:%S'):
-            subsequenceOfInteraction.extend([p1start[i], p1end[i], p1end[i + 1], p2start[i], p2end[i], p2start[i + 1],
-                                             p2end[i + 1]])  # append all time in a candidate pool
-            time_group.append(time_difference[0][i])
-        else:
-            if len(subsequenceOfInteraction) == 0:
-                subsequenceOfInteraction.extend([p1start[i], p1end[i], p2start[i], p2end[i]])
-            final_start.append(min(subsequenceOfInteraction))  # print(i,p1start[i],p1end[i],p1start[i+1],p1end[i+1])
-            final_end.append(max(subsequenceOfInteraction))
-            subsequenceOfInteraction = []
-            time_group.append(time_difference[0][i])
-            diff_mean.append(sum(time_group) / len(time_group))
-            time_group = []
-        if i == (len(p1start) - 2):
-            time_group.append(time_difference[0][i + 1])
-            diff_mean.append(sum(time_group) / len(time_group))
-            time_group = []
-
-    if len(subsequenceOfInteraction) != 0:
-        final_start.append(min(subsequenceOfInteraction))
-        final_end.append(max(subsequenceOfInteraction))
-    if len(p1start) == 1:
-        i = 0
-        subsequenceOfInteraction.extend(
-            [p1start[i], p1end[i], p2start[i], p2end[i]])  # append all time in a candidate pool
-        final_start.append(min(subsequenceOfInteraction))
-        final_end.append(max(subsequenceOfInteraction))
-    df_new = pd.DataFrame(list(zip(final_start, final_end)), columns=['start', 'end'])
-    df_new['p1'] = id1
-    df_new['p2'] = id2
-    df_new['no'] = np.arange(df_new.shape[0]) + 1
-    df_new['duration'] = df_new['end'] - df_new['start']
-    df_new['duration'] = df_new['duration'].dt.total_seconds().div(60)
-    df_new = __merge_continuous_incident(df_new, id1, id2)
-    #df_new['Mean_delay'] = diff_mean
-    return df_new[['no', 'p1', 'p2', 'start', 'end', 'duration']]
+# def durationEstimator(df: pd.DataFrame, id1: int, id2: int):
+#     """
+#     estimate duration of interation
+#     :param id2:
+#     :param id1:
+#     :param df:
+#     :return:
+#     """
+#     p1start = df['p1_t_start'].tolist()
+#     p1end = df['p1_t_end'].tolist()
+#     p2start = df['p2_t_start'].tolist()
+#     p2end = df['p2_t_end'].tolist()
+#     final_start, final_end, subsequenceOfInteraction = [], [], []
+#     time_difference = [(df['p2_t_start'] - df['p1_t_start']) / pd.Timedelta(hours=1)]
+#     time_group, diff_mean = [], []
+#     for i in range(0, len(p1start) - 1):  # identify subsequence of continuous interaction
+#         if datetime.strptime(str(p1start[i]), '%Y-%m-%d %H:%M:%S') == datetime.strptime(str(p1start[i + 1]),
+#                                                                                         '%Y-%m-%d %H:%M:%S'):
+#             subsequenceOfInteraction.extend([p1start[i], p1end[i], p1end[i + 1], p2start[i], p2end[i], p2start[i + 1],
+#                                              p2end[i + 1]])  # append all time in a candidate pool
+#             time_group.append(time_difference[0][i])
+#
+#         elif datetime.strptime(str(p1end[i]), '%Y-%m-%d %H:%M:%S') == datetime.strptime(str(p1start[i + 1]),
+#                                                                                         '%Y-%m-%d %H:%M:%S'):
+#             subsequenceOfInteraction.extend([p1start[i], p1end[i], p1end[i + 1], p2start[i], p2end[i], p2start[i + 1],
+#                                              p2end[i + 1]])  # append all time in a candidate pool
+#             time_group.append(time_difference[0][i])
+#         else:
+#             if len(subsequenceOfInteraction) == 0:
+#                 subsequenceOfInteraction.extend([p1start[i], p1end[i], p2start[i], p2end[i]])
+#             final_start.append(min(subsequenceOfInteraction))  # print(i,p1start[i],p1end[i],p1start[i+1],p1end[i+1])
+#             final_end.append(max(subsequenceOfInteraction))
+#             subsequenceOfInteraction = []
+#             time_group.append(time_difference[0][i])
+#             diff_mean.append(sum(time_group) / len(time_group))
+#             time_group = []
+#         if i == (len(p1start) - 2):
+#             time_group.append(time_difference[0][i + 1])
+#             diff_mean.append(sum(time_group) / len(time_group))
+#             time_group = []
+#
+#     if len(subsequenceOfInteraction) != 0:
+#         final_start.append(min(subsequenceOfInteraction))
+#         final_end.append(max(subsequenceOfInteraction))
+#     if len(p1start) == 1:
+#         i = 0
+#         subsequenceOfInteraction.extend(
+#             [p1start[i], p1end[i], p2start[i], p2end[i]])  # append all time in a candidate pool
+#         final_start.append(min(subsequenceOfInteraction))
+#         final_end.append(max(subsequenceOfInteraction))
+#     df_new = pd.DataFrame(list(zip(final_start, final_end)), columns=['start', 'end'])
+#     df_new['p1'] = id1
+#     df_new['p2'] = id2
+#     df_new['no'] = np.arange(df_new.shape[0]) + 1
+#     df_new['duration'] = df_new['end'] - df_new['start']
+#     df_new['duration'] = df_new['duration'].dt.total_seconds().div(60)
+#     df_new = __merge_continuous_incident(df_new, id1, id2)
+#     #df_new['Mean_delay'] = diff_mean
+#     return df_new[['no', 'p1', 'p2', 'start', 'end', 'duration']]
 
 
 def interaction_compute_speed_diff(df: pd.DataFrame):
@@ -572,35 +572,35 @@ class ORTEGA:
             else:
                 return None
 
-    def interaction_analysis2(self):
-        # old method， voided but just keep it for reference
-        print(datetime.now(), 'Implement interaction analysis...')
-        spatial_pairs = self.__get_spatial_intersect_pairs()
-        all_intersection_pairs = get_timedelay_pairs(spatial_pairs, self.minute_min_delay, self.minute_max_delay)
-        if not all_intersection_pairs:
-            print(datetime.now(), 'Complete! No interaction found!')
-            return None
-        else:
-            print(datetime.now(), f'Complete! {len(all_intersection_pairs)} pairs of intersecting PPAs found!')
-            results = ORTEGAResults()
-            results.set_intersection_ellipse_pair(all_intersection_pairs)
-
-            # convert the list of intersecting ellipses to dataframe format - df_all_intersection_pairs
-            df_all_intersection_pairs = intersect_ellipse_todataframe(all_intersection_pairs)
-            df_all_intersection_pairs = interaction_compute_speed_diff(df_all_intersection_pairs)
-            df_all_intersection_pairs = interaction_compute_direction_diff(df_all_intersection_pairs)
-            df_all_intersection_pairs = interaction_compute_time_diff(df_all_intersection_pairs)
-            results.set_df_all_intersection_pairs(df_all_intersection_pairs)
-
-            # compute duration of interaction and output as a dataframe - df_duration
-            print(datetime.now(), 'Compute duration of interaction...')
-            df_duration = durationEstimator(df_all_intersection_pairs, self.id1, self.id2)
-            print(datetime.now(), f'Complete! {df_duration.shape[0]} interaction events identified!')
-            if df_duration.shape[0] != 0:
-                results.set_df_interaction_events(df_duration)
-                return results
-            else:
-                return None
+    # def interaction_analysis2(self):
+    #     # old method， voided but just keep it for reference
+    #     print(datetime.now(), 'Implement interaction analysis...')
+    #     spatial_pairs = self.__get_spatial_intersect_pairs()
+    #     all_intersection_pairs = get_timedelay_pairs(spatial_pairs, self.minute_min_delay, self.minute_max_delay)
+    #     if not all_intersection_pairs:
+    #         print(datetime.now(), 'Complete! No interaction found!')
+    #         return None
+    #     else:
+    #         print(datetime.now(), f'Complete! {len(all_intersection_pairs)} pairs of intersecting PPAs found!')
+    #         results = ORTEGAResults()
+    #         results.set_intersection_ellipse_pair(all_intersection_pairs)
+    #
+    #         # convert the list of intersecting ellipses to dataframe format - df_all_intersection_pairs
+    #         df_all_intersection_pairs = intersect_ellipse_todataframe(all_intersection_pairs)
+    #         df_all_intersection_pairs = interaction_compute_speed_diff(df_all_intersection_pairs)
+    #         df_all_intersection_pairs = interaction_compute_direction_diff(df_all_intersection_pairs)
+    #         df_all_intersection_pairs = interaction_compute_time_diff(df_all_intersection_pairs)
+    #         results.set_df_all_intersection_pairs(df_all_intersection_pairs)
+    #
+    #         # compute duration of interaction and output as a dataframe - df_duration
+    #         print(datetime.now(), 'Compute duration of interaction...')
+    #         df_duration = durationEstimator(df_all_intersection_pairs, self.id1, self.id2)
+    #         print(datetime.now(), f'Complete! {df_duration.shape[0]} interaction events identified!')
+    #         if df_duration.shape[0] != 0:
+    #             results.set_df_interaction_events(df_duration)
+    #             return results
+    #         else:
+    #             return None
 
     def __check_time_lag_and_overlap(self):
         """
