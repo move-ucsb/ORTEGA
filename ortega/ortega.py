@@ -21,18 +21,6 @@ def __check_spatial_intersect(item: Ellipse, others: Ellipse) -> bool:
     )
 
 
-# def get_time_difference(
-#         ellipses_list_id1: List[Ellipse], ellipses_list_id2: List[Ellipse]):
-#     time_diff = []
-#     for count, item in enumerate(ellipses_list_id1, 1):
-#         # spatial intersect
-#         sub_ellipses_list = []
-#         for item2 in ellipses_list_id2:
-#             if __check_spatial_intersect(item, item2):
-#                 time_diff.append(__timedifcheck(item.t1, item2.t1))
-#     return time_diff
-
-
 def get_spatial_intersect_pairs(
         ellipses_list_id1: List[Ellipse], ellipses_list_id2: List[Ellipse],
         ) -> List[Tuple[Ellipse, Ellipse]]:
@@ -186,117 +174,9 @@ def check_continuous(df: pd.DataFrame, id1: int, id2: int):
     return df_new[['p1', 'p2', 'p1_start', 'p1_end', 'p2_start', 'p2_end', 'difference']]
 
 
-# def __merge_continuous_incident(df: pd.DataFrame, id1: int, id2: int):
-#     """
-#     Merge continuous interaction incidents after estimating duration
-#     :param df:
-#     :param id1:
-#     :param id2:
-#     :return:
-#     """
-#     pstart = df['start'].tolist()
-#     pend = df['end'].tolist()
-#     finalstart, finalend = [], []
-#     tag = []
-#     for i in range(0, len(pstart) - 1):
-#         if pend[i] >= pstart[i + 1]:
-#             tag.append(1)
-#         else:
-#             tag.append(0)
-#     tag.append(0)
-#     df['tag'] = tag
-#     finalsub, subq = [], []
-#     j = 0
-#     while j < len(tag):
-#         if tag[j] == 1 and tag[j + 1] == 1:
-#             subq.extend([pstart[j], pend[j], pstart[j + 1], pend[j + 1]])
-#             j += 1
-#         elif tag[j] == 1 and tag[j + 1] == 0:
-#             subq.extend([pstart[j], pend[j], pstart[j + 1], pend[j + 1]])
-#         else:
-#             if len(subq) != 0:
-#                 finalsub.append(subq)
-#             else:
-#                 finalsub.append([pstart[j], pend[j]])
-#             subq = []
-#         j += 1
-#     for item in finalsub:
-#         finalstart.append(min(item))
-#         finalend.append(max(item))
-#
-#     df_new = pd.DataFrame(list(zip(finalstart, finalend)), columns=['start', 'end'])
-#     df_new['p1'] = id1
-#     df_new['p2'] = id2
-#     df_new['no'] = np.arange(df_new.shape[0]) + 1
-#     df_new['duration'] = df_new['ed'] - df_new['start']
-#     df_new['duration'] = df_new['duration'].dt.total_seconds().div(60)
-#     return df_new[['no', 'p1', 'p2', 'start', 'end', 'duration']]
-
-
-# def durationEstimator(df: pd.DataFrame, id1: int, id2: int):
-#     """
-#     estimate duration of interation
-#     :param id2:
-#     :param id1:
-#     :param df:
-#     :return:
-#     """
-#     p1start = df['p1_t_start'].tolist()
-#     p1end = df['p1_t_end'].tolist()
-#     p2start = df['p2_t_start'].tolist()
-#     p2end = df['p2_t_end'].tolist()
-#     final_start, final_end, subsequenceOfInteraction = [], [], []
-#     time_difference = [(df['p2_t_start'] - df['p1_t_start']) / pd.Timedelta(hours=1)]
-#     time_group, diff_mean = [], []
-#     for i in range(0, len(p1start) - 1):  # identify subsequence of continuous interaction
-#         if datetime.strptime(str(p1start[i]), '%Y-%m-%d %H:%M:%S') == datetime.strptime(str(p1start[i + 1]),
-#                                                                                         '%Y-%m-%d %H:%M:%S'):
-#             subsequenceOfInteraction.extend([p1start[i], p1end[i], p1end[i + 1], p2start[i], p2end[i], p2start[i + 1],
-#                                              p2end[i + 1]])  # append all time in a candidate pool
-#             time_group.append(time_difference[0][i])
-#
-#         elif datetime.strptime(str(p1end[i]), '%Y-%m-%d %H:%M:%S') == datetime.strptime(str(p1start[i + 1]),
-#                                                                                         '%Y-%m-%d %H:%M:%S'):
-#             subsequenceOfInteraction.extend([p1start[i], p1end[i], p1end[i + 1], p2start[i], p2end[i], p2start[i + 1],
-#                                              p2end[i + 1]])  # append all time in a candidate pool
-#             time_group.append(time_difference[0][i])
-#         else:
-#             if len(subsequenceOfInteraction) == 0:
-#                 subsequenceOfInteraction.extend([p1start[i], p1end[i], p2start[i], p2end[i]])
-#             final_start.append(min(subsequenceOfInteraction))  # print(i,p1start[i],p1end[i],p1start[i+1],p1end[i+1])
-#             final_end.append(max(subsequenceOfInteraction))
-#             subsequenceOfInteraction = []
-#             time_group.append(time_difference[0][i])
-#             diff_mean.append(sum(time_group) / len(time_group))
-#             time_group = []
-#         if i == (len(p1start) - 2):
-#             time_group.append(time_difference[0][i + 1])
-#             diff_mean.append(sum(time_group) / len(time_group))
-#             time_group = []
-#
-#     if len(subsequenceOfInteraction) != 0:
-#         final_start.append(min(subsequenceOfInteraction))
-#         final_end.append(max(subsequenceOfInteraction))
-#     if len(p1start) == 1:
-#         i = 0
-#         subsequenceOfInteraction.extend(
-#             [p1start[i], p1end[i], p2start[i], p2end[i]])  # append all time in a candidate pool
-#         final_start.append(min(subsequenceOfInteraction))
-#         final_end.append(max(subsequenceOfInteraction))
-#     df_new = pd.DataFrame(list(zip(final_start, final_end)), columns=['start', 'end'])
-#     df_new['p1'] = id1
-#     df_new['p2'] = id2
-#     df_new['no'] = np.arange(df_new.shape[0]) + 1
-#     df_new['duration'] = df_new['end'] - df_new['start']
-#     df_new['duration'] = df_new['duration'].dt.total_seconds().div(60)
-#     df_new = __merge_continuous_incident(df_new, id1, id2)
-#     #df_new['Mean_delay'] = diff_mean
-#     return df_new[['no', 'p1', 'p2', 'start', 'end', 'duration']]
-
-
 def interaction_compute_speed_diff(df: pd.DataFrame):
     """
-    compute the percentage difference in speed between two moving entities
+    compute the percentage difference in speed between two moving entities;
     this speed is based on the instant speed between two points not the average speed over a kernel
     :param df:
     :return:
@@ -314,24 +194,17 @@ def interaction_compute_direction_diff(df: pd.DataFrame):
     :param df:
     :return:
     """
-
-    # def between_angles(x, a):
-    #     # The difference in movement direction of two interacting entities is between 0 and 180 degrees, with 0
-    #     # degrees indicating an identical movement direction and 180 degrees indicating a completely opposite
-    #     # movement direction.
-    #     if x[a] >= 180:
-    #         x[a] -= 360
-    #     if x[a] < -180:
-    #         x[a] += 360
-    #     x[a] = abs(x[a])
-    #     return x
-
     df['diff_direction'] = df['p2_direction'] - df['p1_direction']
     df['diff_direction'] = df['diff_direction'].apply(math.cos)
     return df
 
 
 def interaction_compute_time_diff(df: pd.DataFrame):
+    """
+    compute the time lag of two intersecting segments (interaction events)
+    :param df:
+    :return:
+    """
     df['diff_time'] = (df['p2_t_start'] - df['p1_t_start'])/ pd.Timedelta(minutes=1)
     return df
 
@@ -527,7 +400,7 @@ class ORTEGA:
                 self.df2 = self.data[self.data[self.id_field] == self.id2]
 
             # Check time overlap and lag, stop initialization if conditions are not met
-            if not self.__check_time_lag_and_overlap():
+            if not self.__precheck_time_lag_and_overlap(self.minute_max_delay):
                 raise ValueError(f"Skipping pair {self.id1} and {self.id2} due to time lag greater than {self.minute_max_delay}!")
 
     def __start(self):
@@ -537,10 +410,12 @@ class ORTEGA:
         ellipses_list_id1: PPAs for object 1
         ellipses_list_id2: PPAs for object 2
         """
-        self.ellipses_list = self.__get_ellipse_list(self.df1, self.df2)  # all ellipses for two objects
+        # create all ellipses for two objects
+        self.ellipses_list = self.__get_ellipse_list(self.df1, self.df2, self.max_el_time_min, self.speed_average)
+
+        # split ellipses by id
         self.ellipses_list_id1 = [i for i in self.ellipses_list if i.pid == self.id1]
         self.ellipses_list_id2 = [i for i in self.ellipses_list if i.pid == self.id2]
-        # these do not exclude large PPAs! Only after __get_spatiotemporal_intersect_pairs() we exclude large PPAs
         print(datetime.now(), 'Initialization success!')
 
     def interaction_analysis(self):
@@ -572,38 +447,9 @@ class ORTEGA:
             else:
                 return None
 
-    # def interaction_analysis2(self):
-    #     # old method， voided but just keep it for reference
-    #     print(datetime.now(), 'Implement interaction analysis...')
-    #     spatial_pairs = self.__get_spatial_intersect_pairs()
-    #     all_intersection_pairs = get_timedelay_pairs(spatial_pairs, self.minute_min_delay, self.minute_max_delay)
-    #     if not all_intersection_pairs:
-    #         print(datetime.now(), 'Complete! No interaction found!')
-    #         return None
-    #     else:
-    #         print(datetime.now(), f'Complete! {len(all_intersection_pairs)} pairs of intersecting PPAs found!')
-    #         results = ORTEGAResults()
-    #         results.set_intersection_ellipse_pair(all_intersection_pairs)
-    #
-    #         # convert the list of intersecting ellipses to dataframe format - df_all_intersection_pairs
-    #         df_all_intersection_pairs = intersect_ellipse_todataframe(all_intersection_pairs)
-    #         df_all_intersection_pairs = interaction_compute_speed_diff(df_all_intersection_pairs)
-    #         df_all_intersection_pairs = interaction_compute_direction_diff(df_all_intersection_pairs)
-    #         df_all_intersection_pairs = interaction_compute_time_diff(df_all_intersection_pairs)
-    #         results.set_df_all_intersection_pairs(df_all_intersection_pairs)
-    #
-    #         # compute duration of interaction and output as a dataframe - df_duration
-    #         print(datetime.now(), 'Compute duration of interaction...')
-    #         df_duration = durationEstimator(df_all_intersection_pairs, self.id1, self.id2)
-    #         print(datetime.now(), f'Complete! {df_duration.shape[0]} interaction events identified!')
-    #         if df_duration.shape[0] != 0:
-    #             results.set_df_interaction_events(df_duration)
-    #             return results
-    #         else:
-    #             return None
-
-    def __check_time_lag_and_overlap(self):
+    def __precheck_time_lag_and_overlap(self, minute_max_delay: float):
         """
+        Author: Yifei Liu
         Check time overlap and time lag between the movements of two individuals (private method, only can be called inside the class).
         Returns a boolean value indicating whether the time lag is less than or equal to the allowable maximum delay (True) or not (False).
         """
@@ -621,11 +467,11 @@ class ORTEGA:
             # Calculate the time lag
             time_lag = abs((start2 - end1).total_seconds() / 60) if end1 < start2 else abs((start1 - end2).total_seconds() / 60)
             # Check if time lag is greater than the max delay
-            if time_lag > self.minute_max_delay:
+            if time_lag > minute_max_delay:
                 return False
         return True
 
-    def __get_ellipse_list(self, df1: pd.DataFrame, df2: pd.DataFrame):
+    def __get_ellipse_list(self, df1: pd.DataFrame, df2: pd.DataFrame, max_el_time_min: float, speed_average: bool):
         """
         Create PPA ellipses using as input the two dataframes of GPS tracks of two moving objects
         :param df1: a pandas dataframe of GPS points of individual id1
@@ -636,21 +482,14 @@ class ORTEGA:
         ellipses_list_gen = EllipseList(self.latitude_field, self.longitude_field, self.id_field, self.time_field)
 
         # create PPA for df1, skip PPAs with large time interval
-        ellipses_list_gen.generate(df1, max_el_time_min=self.max_el_time_min, speed_average=self.speed_average)
+        ellipses_list_gen.generate(df1, max_el_time_min=max_el_time_min, speed_average=speed_average)
         # append PPA based on df2 to the above ellipses_list_gen object
-        allPPAlist = ellipses_list_gen.generate(df2, max_el_time_min=self.max_el_time_min,
-                                                speed_average=self.speed_average)
+        allPPAlist = ellipses_list_gen.generate(df2, max_el_time_min=max_el_time_min,
+                                                speed_average=speed_average)
         print(datetime.now(), "Generating PPA list completed!")
 
         return allPPAlist  # return the whole list of PPAs
-    '''
-    def __get_spatiotemporal_intersect_pairs(self):
-        print(datetime.now(), "Getting spatial and temporal intersection pairs...")
-        intersection_pairs = get_spatiotemporal_intersect_pairs(self.ellipses_list_id1, self.ellipses_list_id2,
-                                                                self.minute_delay)
-        print(datetime.now(), "Getting spatial and temporal intersection pairs completed!")
-        return intersection_pairs
-    '''
+
     def __get_spatial_intersect_pairs(self):
         intersection_pairs = get_spatial_intersect_pairs(self.ellipses_list_id1, self.ellipses_list_id2)
         return intersection_pairs
