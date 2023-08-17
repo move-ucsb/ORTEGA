@@ -660,20 +660,20 @@ class ORTEGA:
             [e.speed for e in self.ellipses_list_id1],
             [e.speed for e in self.ellipses_list_id2]
         ]
-        print(f"Descriptive statistics of PPA ellipses length for id {self.id1}:")
+        print(f"Descriptive statistics of PPA speed for id {self.id1}:")
         print(pd.Series(speed_list[0]).describe())
-        print(f"Descriptive statistics of PPA ellipses length for id {self.id2}:")
+        print(f"Descriptive statistics of PPA speed for id {self.id2}:")
         print(pd.Series(speed_list[1]).describe())
         return speed_list
 
-    def compute_ppa_size(self):
+    def compute_ppa_perimeter(self):
         size_list = [
             [e.el.length for e in self.ellipses_list_id1],
             [e.el.length for e in self.ellipses_list_id2]
         ]
-        print(f"Descriptive statistics of PPA ellipses length for id {self.id1}:")
+        print(f"Descriptive statistics of PPA perimeter for id {self.id1}:")
         print(pd.Series(size_list[0]).describe())
-        print(f"Descriptive statistics of PPA ellipses length for id {self.id2}:")
+        print(f"Descriptive statistics of PPA perimeter for id {self.id2}:")
         print(pd.Series(size_list[1]).describe())
         return size_list
 
@@ -684,8 +684,8 @@ class ORTEGA:
             self.df2[self.time_field].diff().dt.total_seconds().div(60).dropna().loc[
                 lambda x: x <= self.max_el_time_min]
         ]
-        print(f"Descriptive statistics of PPA ellipses time interval (minutes) for id {self.id1}:")
+        print(f"Descriptive statistics of PPA time interval (minutes) for id {self.id1}:")
         print(time_diff[0].describe())
-        print(f"Descriptive statistics of PPA ellipses time interval (minutes) for id {self.id2}:")
+        print(f"Descriptive statistics of PPA time interval (minutes) for id {self.id2}:")
         print(time_diff[1].describe())
         return time_diff
