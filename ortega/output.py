@@ -3,7 +3,7 @@ from typing import List, Tuple
 from .common import *
 
 
-def _extract_attributes(df: pd.DataFrame, col: str, method: str):
+def extract_attributes(df: pd.DataFrame, col: str, method: str):
     VALID_METHODS = {'mean', 'difference'}
     if method not in VALID_METHODS:
         raise ValueError("results: method must be one of %r." % VALID_METHODS)
@@ -53,5 +53,5 @@ class ORTEGAResults:
         self.df_interaction_events['duration'] = self.df_interaction_events['duration'].dt.total_seconds().div(60)
         print(datetime.now(), f'Computing interaction duration complete!')
 
-    def extract_attributes(self, col: str, method: str):
-        self.df_all_intersection_pairs = _extract_attributes(self.df_all_intersection_pairs, col, method)
+    def attach_attributes(self, col: str, method: str):
+        self.df_all_intersection_pairs = extract_attributes(self.df_all_intersection_pairs, col, method)
