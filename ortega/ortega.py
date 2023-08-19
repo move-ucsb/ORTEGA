@@ -9,7 +9,8 @@ from .output import *
 
 def __check_spatial_intersect(item: Ellipse, others: Ellipse) -> bool:
     """
-    test
+    [2023 Aug 18 Rongxiang:] I need to test this function. The below three conditions might be redundant. If el or geom
+    itself is sufficient, I would remove one of them in the Ellipse class.
     :param item:
     :param others:
     :return:
@@ -43,9 +44,10 @@ def get_timedelay_pairs(intersection_df: List[Tuple[Ellipse, Ellipse]],
     return intersection_pair
 
 
-def intersect_ellipse_todataframe(intersection_df: List[Tuple[Ellipse, Ellipse]]):
+def intersect_ellipse_todataframe(intersection_df: List[Tuple[Ellipse, Ellipse]], attrs_fields: List[str]):
     """
 
+    :param attrs_fields:
     :param intersection_df:
     :return:
     """
@@ -53,17 +55,32 @@ def intersect_ellipse_todataframe(intersection_df: List[Tuple[Ellipse, Ellipse]]
     def columns_names(e: Ellipse, num: int):
         as_dict = e.to_dict()
 
-        return {
-            f"p{num}": as_dict["pid"],
-            f"p{num}_t_start": as_dict["t0"],
-            f"p{num}_t_end": as_dict["t1"],
-            f"p{num}_startlat": as_dict["last_lat"],
-            f"p{num}_startlon": as_dict["last_lon"],
-            f"p{num}_endlat": as_dict["lat"],
-            f"p{num}_endlon": as_dict["lon"],
-            f"p{num}_speed": as_dict["speed"],
-            f"p{num}_direction": as_dict["direction"]
-        }
+        if attrs_fields is not None:
+            return {
+                f"p{num}": as_dict["pid"],
+                f"p{num}_t_start": as_dict["t0"],
+                f"p{num}_t_end": as_dict["t1"],
+                f"p{num}_startlat": as_dict["last_lat"],
+                f"p{num}_startlon": as_dict["last_lon"],
+                f"p{num}_endlat": as_dict["lat"],
+                f"p{num}_endlon": as_dict["lon"],
+                f"p{num}_speed": as_dict["speed"],
+                f"p{num}_direction": as_dict["direction"],
+                f"p{num}_start_attrs": as_dict["last_attrs"],
+                f"p{num}_end_attrs": as_dict["attrs"]
+            }
+        else:
+            return {
+                f"p{num}": as_dict["pid"],
+                f"p{num}_t_start": as_dict["t0"],
+                f"p{num}_t_end": as_dict["t1"],
+                f"p{num}_startlat": as_dict["last_lat"],
+                f"p{num}_startlon": as_dict["last_lon"],
+                f"p{num}_endlat": as_dict["lat"],
+                f"p{num}_endlon": as_dict["lon"],
+                f"p{num}_speed": as_dict["speed"],
+                f"p{num}_direction": as_dict["direction"]
+            }
 
     return pd.DataFrame(
         [
@@ -223,7 +240,8 @@ class ORTEGA:
             longitude_field: str = "longitude",  # specify the longitude field name
             id_field: str = "pid",  # specify the id field name
             time_field: str = "time_local",  # time_field must include month, day, year, hour, minute, second
-            speed_average: bool = False
+            speed_average: bool = False,
+            attr_fields: List[str] = None
             # kernel: List[int] = None,  # define a kernel for averaging speed when creating PPA (e.g., [1, 1, 2, 5])
     ):
         self.data = data
@@ -233,6 +251,7 @@ class ORTEGA:
         self.longitude_field = longitude_field
         self.id_field = id_field
         self.time_field = time_field
+        self.attr_fields = attr_fields
         self.minute_min_delay = minute_min_delay
         self.minute_max_delay = minute_max_delay
         self.max_el_time_min = max_el_time_min
@@ -365,6 +384,7 @@ class ORTEGA:
 
     def __validate(self):
         """
+        validate the input parameters;
         private function, only can be called in side the class
         """
         print(datetime.now(), 'Initializing ORTEGA object...')
@@ -399,12 +419,13 @@ class ORTEGA:
                 self.df1 = self.data[self.data[self.id_field] == self.id1]
                 self.df2 = self.data[self.data[self.id_field] == self.id2]
 
-            # Check time overlap and lag, stop initialization if conditions are not met
+            # Check if two individuals overlap in time given the allowable time lag; terminate if no overlap found
             if not self.__precheck_time_lag_and_overlap(self.minute_max_delay):
                 raise ValueError(f"Skipping pair {self.id1} and {self.id2} due to time lag greater than {self.minute_max_delay}!")
 
     def __start(self):
         """
+        private function, only can be called in side the class;
         create PPAs for two moving objects (private method, only can be called inside the class)
         ellipses_list: all PPAs for two objects
         ellipses_list_id1: PPAs for object 1
@@ -431,7 +452,7 @@ class ORTEGA:
             print(datetime.now(), f'Complete! {len(all_intersection_pairs)} pairs of intersecting PPAs found!')
 
             # convert the list of intersecting ellipses to dataframe format - df_all_intersection_pairs
-            df_all_intersection_pairs = intersect_ellipse_todataframe(all_intersection_pairs)
+            df_all_intersection_pairs = intersect_ellipse_todataframe(all_intersection_pairs, self.attr_fields)
             df_all_intersection_pairs = interaction_compute_speed_diff(df_all_intersection_pairs)
             df_all_intersection_pairs = interaction_compute_direction_diff(df_all_intersection_pairs)
             df_all_intersection_pairs = interaction_compute_time_diff(df_all_intersection_pairs)
@@ -450,6 +471,7 @@ class ORTEGA:
     def __precheck_time_lag_and_overlap(self, minute_max_delay: float):
         """
         Author: Yifei Liu
+        private function, only can be called in side the class;
         Check time overlap and time lag between the movements of two individuals (private method, only can be called inside the class).
         Returns a boolean value indicating whether the time lag is less than or equal to the allowable maximum delay (True) or not (False).
         """
@@ -473,13 +495,14 @@ class ORTEGA:
 
     def __get_ellipse_list(self, df1: pd.DataFrame, df2: pd.DataFrame, max_el_time_min: float, speed_average: bool):
         """
+        private function, only can be called in side the class;
         Create PPA ellipses using as input the two dataframes of GPS tracks of two moving objects
         :param df1: a pandas dataframe of GPS points of individual id1
         :param df2: a pandas dataframe of GPS points of individual id2
         :return:
         """
         print(datetime.now(), "Generate PPA list for the two moving entities...")
-        ellipses_list_gen = EllipseList(self.latitude_field, self.longitude_field, self.id_field, self.time_field)
+        ellipses_list_gen = EllipseList(self.latitude_field, self.longitude_field, self.id_field, self.time_field, self.attr_fields)
 
         # create PPA for df1, skip PPAs with large time interval
         ellipses_list_gen.generate(df1, max_el_time_min=max_el_time_min, speed_average=speed_average)
@@ -491,6 +514,10 @@ class ORTEGA:
         return allPPAlist  # return the whole list of PPAs
 
     def __get_spatial_intersect_pairs(self):
+        """
+        private function, only can be called in side the class;
+        :return:
+        """
         intersection_pairs = get_spatial_intersect_pairs(self.ellipses_list_id1, self.ellipses_list_id2)
         return intersection_pairs
 

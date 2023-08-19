@@ -3,7 +3,7 @@ from setuptools import setup
 if __name__ == "__main__":
     setup(
         name='ortega',
-        version='1.0.10',
+        version='1.0.11',
         author='MOVE lab@UCSB',
         author_email="rongxiangsu@ucsb.edu",
         packages=["ortega"],

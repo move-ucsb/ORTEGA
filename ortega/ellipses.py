@@ -52,7 +52,7 @@ def ppa_ellipse(stp1: STPoint, stp2: STPoint, est_speed: float, avg_speed: float
     :param est_speed: instant speed based on a pair of consecutive points
     :return:
     """
-    speed = max(est_speed, avg_speed) # avg_speed can be negative value so this step can prevent a negative speed
+    speed = max(est_speed, avg_speed)  # avg_speed can be negative value so this step can prevent a negative speed
     center, major, minor, angle = stp1.ellipse(stp2, speed)
     # print(center, major, minor, angle)
     ply = ellipse_polyline(center, major, minor, angle)
@@ -92,6 +92,8 @@ class EllipseDictionary(TypedDict):
     last_lat: Union[float, None]
     speed: float
     direction: float
+    attrs: Union[Any, None]
+    last_attrs: Union[Any, None]
 
 
 @define(frozen=True)
@@ -109,6 +111,8 @@ class Ellipse:
     speed: float  # PPA speed between two consecutive points not the average speed over a few points
     direction: float  # PPA direction
     geom: Polygon  # a shapeley Polygon object for PPA (so that we can use geom.within to determine if two PPAs overlap)
+    attrs: Union[Any, None] = None
+    last_attrs: Union[Any, None] = None
 
     def to_dict(self) -> EllipseDictionary:
         #  return a dict for creating dataframe of intersecting PPA later
@@ -121,7 +125,9 @@ class Ellipse:
             "last_lon": self.last_lon,
             "last_lat": self.last_lat,
             "speed": self.speed,
-            "direction": self.direction
+            "direction": self.direction,
+            "attrs": self.attrs,
+            "last_attrs": self.last_attrs
         }
 
 
@@ -133,16 +139,21 @@ class EllipseList:
             longitude_field: str,
             id_field: str,
             time_field: str,
+            attr_fields: Union[List[str], None] = None
     ):
         self.list: List[Ellipse] = []
-        self.last_lat: Union[float, None] = None
-        self.last_lon: Union[float, None] = None
-        self.last_id: Union[int, None] = None
+        self.last_lat: Union[
+            float, None] = None  # having last_lat, last_lon, last_id, last_ts here just for initializing Ellipse()
+        self.last_lon: Union[
+            float, None] = None  # these attributes are not useful anywhere besides initializing Ellipse()
+        self.last_id: Union[int, None] = None  # they only save the attributes of the last point of the tracking data
         self.last_ts: Union[pd.Timestamp, None] = None
+        self.last_attrs: Any = None
         self.latitude_field = latitude_field
         self.longitude_field = longitude_field
         self.id_field = id_field
         self.time_field = time_field
+        self.attr_fields = attr_fields
 
     def add_ellipse(
             self,
@@ -152,21 +163,38 @@ class EllipseList:
             direction: float,
             geom: Polygon,
     ):
-        new_ellipse = Ellipse(
-            el,
-            row[self.latitude_field],
-            row[self.longitude_field],
-            self.last_lat,
-            self.last_lon,
-            row[self.id_field],
-            self.last_id,
-            row[self.time_field],
-            self.last_ts,
-            est_speed,
-            direction,
-            geom,
-        )
-
+        if self.attr_fields is not None:
+            new_ellipse = Ellipse(
+                el,
+                row[self.latitude_field],
+                row[self.longitude_field],
+                self.last_lat,
+                self.last_lon,
+                row[self.id_field],
+                self.last_id,
+                row[self.time_field],
+                self.last_ts,
+                est_speed,
+                direction,
+                geom,
+                row[self.attr_fields].to_dict(),
+                self.last_attrs
+            )
+        else:
+            new_ellipse = Ellipse(
+                el,
+                row[self.latitude_field],
+                row[self.longitude_field],
+                self.last_lat,
+                self.last_lon,
+                row[self.id_field],
+                self.last_id,
+                row[self.time_field],
+                self.last_ts,
+                est_speed,
+                direction,
+                geom,
+            )
         self.list.append(new_ellipse)
 
     def set_last(self, row: Any):
@@ -174,6 +202,8 @@ class EllipseList:
         self.last_lon = row[self.longitude_field]
         self.last_id = row[self.id_field]
         self.last_ts = row[self.time_field]
+        if self.attr_fields is not None:
+            self.last_attrs = row[self.attr_fields].to_dict()
 
     def get_last_to_point(self) -> STPoint:
         return STPoint(self.last_lat, self.last_lon, self.last_ts, self.last_id)

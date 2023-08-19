@@ -3,6 +3,30 @@ from typing import List, Tuple
 from .common import *
 
 
+def _extract_attributes(df: pd.DataFrame, col: str, method: str):
+    VALID_METHODS = {'mean', 'difference'}
+    if method not in VALID_METHODS:
+        raise ValueError("results: method must be one of %r." % VALID_METHODS)
+
+    def mean(row):
+        row['p1_attrs_' + col] = (row['p1_start_attrs'][col] + row['p1_end_attrs'][col]) / 2
+        row['p2_attrs_' + col] = (row['p2_start_attrs'][col] + row['p2_end_attrs'][col]) / 2
+        row['attrs_mean_' + col] = (row['p1_attrs_' + col] + row['p2_attrs_' + col])/2
+        return row
+
+    def difference(row):
+        row['p1_attrs_' + col] = (row['p1_start_attrs'][col] + row['p1_end_attrs'][col]) / 2
+        row['p2_attrs_' + col] = (row['p2_start_attrs'][col] + row['p2_end_attrs'][col]) / 2
+        row['attrs_diff_' + col] = row['p1_attrs_' + col] - row['p2_attrs_' + col]
+        return row
+
+    if method == 'mean':
+        df = df.apply(lambda row: mean(row), axis=1)
+    if method == 'difference':
+        df = df.apply(lambda row: difference(row), axis=1)
+    return df
+
+
 class ORTEGAResults:
     def __init__(
             self,
@@ -29,3 +53,5 @@ class ORTEGAResults:
         self.df_interaction_events['duration'] = self.df_interaction_events['duration'].dt.total_seconds().div(60)
         print(datetime.now(), f'Computing interaction duration complete!')
 
+    def extract_attributes(self, col: str, method: str):
+        self.df_all_intersection_pairs = _extract_attributes(self.df_all_intersection_pairs, col, method)
