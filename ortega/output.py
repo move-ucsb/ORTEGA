@@ -53,5 +53,13 @@ class ORTEGAResults:
         self.df_interaction_events['duration'] = self.df_interaction_events['duration'].dt.total_seconds().div(60)
         print(datetime.now(), f'Computing interaction duration complete!')
 
-    def attach_attributes(self, col: str, method: str):
-        self.df_all_intersection_pairs = extract_attributes(self.df_all_intersection_pairs, col, method)
+    def attach_attributes(self, col, method: str):
+        if method not in ['mean', 'difference']:
+            raise ValueError("Parameter 'method' must be one of these: ['mean','difference']!")
+        if isinstance(col, str):
+            self.df_all_intersection_pairs = extract_attributes(self.df_all_intersection_pairs, col, method)
+        elif isinstance(col, list):
+            for c in col:
+                self.df_all_intersection_pairs = extract_attributes(self.df_all_intersection_pairs, c, method)
+        else:
+            raise TypeError("Parameter 'col' must be either a string or a list of strings!")
