@@ -4,10 +4,6 @@ from .common import *
 
 
 def extract_attributes(df: pd.DataFrame, col: str, method: str):
-    VALID_METHODS = {'mean', 'difference'}
-    if method not in VALID_METHODS:
-        raise ValueError("results: method must be one of %r." % VALID_METHODS)
-
     def mean(row):
         row['p1_attrs_' + col] = (row['p1_start_attrs'][col] + row['p1_end_attrs'][col]) / 2
         row['p2_attrs_' + col] = (row['p2_start_attrs'][col] + row['p2_end_attrs'][col]) / 2

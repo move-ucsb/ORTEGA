@@ -26,6 +26,7 @@ def get_spatial_intersect_pairs(
         ellipses_list_id1: List[Ellipse], ellipses_list_id2: List[Ellipse],
         ) -> List[Tuple[Ellipse, Ellipse]]:
     intersection_pairs = []
+    # [Aug 22, 2023 Rongxiang:] this step can be improved; maybe swap with temporal intersect
     for count, item in enumerate(ellipses_list_id1, 1):
         # spatial intersect
         for item2 in ellipses_list_id2:

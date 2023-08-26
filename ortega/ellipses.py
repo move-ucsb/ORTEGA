@@ -230,7 +230,7 @@ class EllipseList:
                     speed_memory = SpeedMemory()  # clear speed_memory if ever skip a PPA
                     continue
                 p1: STPoint = STPoint.from_row(row, self.latitude_field, self.longitude_field, self.id_field,
-                                               self.time_field)
+                                               self.time_field)  # create STPoint object for each GPS point
                 p2: STPoint = self.get_last_to_point()
                 inst_speed = p1.average_speed(p2)
                 est_speed = inst_speed * multi_el
@@ -250,7 +250,7 @@ class EllipseList:
                     el, angle = ppa_ellipse(p1, p2, est_speed, est_speed)
                 geom = Polygon(el)
                 try:
-                    self.add_ellipse(el, row, inst_speed, angle, geom)
+                    self.add_ellipse(el, row, inst_speed, angle, geom)  # create Ellipse object
                 except Exception as e:
                     print(e)
                     print("Can't make ellipse class instance")
