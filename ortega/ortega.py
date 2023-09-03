@@ -233,7 +233,7 @@ class ORTEGA:
             self,
             data: pd.DataFrame,  # movement data of two entities
             minute_min_delay: float = 0,  # allowable minimum delay for intersecting PPAs, in minute
-            minute_max_delay: float = 0,  # allowable maximum delay for intersecting PPAs, in minute
+            minute_max_delay: float = None,  # allowable maximum delay for intersecting PPAs, in minute
             start_time: str = None,  # use this when users want to select a segment of movement data
             end_time: str = None,  # use this when users want to select a segment of movement data
             max_el_time_min: float = 10000,  # PPA's interval greater than this value will be eliminated, in minute
@@ -279,6 +279,8 @@ class ORTEGA:
 
     @minute_max_delay.setter
     def minute_max_delay(self, value):
+        if value is None:
+            raise TypeError("Parameter 'minute_max_delay' must not be None!")
         if not isinstance(value, float) and not isinstance(value, int):
             raise TypeError("Parameter 'minute_max_delay' must be numeric!")
         if value <= 0:
@@ -388,6 +390,9 @@ class ORTEGA:
         validate the input parameters;
         private function, only can be called in side the class
         """
+        if self.minute_max_delay < self.minute_min_delay:
+            raise ValueError("Parameter 'minute_max_delay' must be greater than 'minute_min_delay'!")
+
         print(datetime.now(), 'Initializing ORTEGA object...')
         if not is_datetime64_dtype(self.data[self.time_field]):
             raise TypeError("Column 'time_field' is not datetime type! Please use "

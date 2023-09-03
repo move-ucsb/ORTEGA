@@ -4,12 +4,13 @@ import pandas as pd
 from typing import Any
 import numpy as np
 from shapely.geometry import Point
+from .common import haversine
 
 
 class STPoint:
     def __init__(self, x: float, y: float, time: pd.Timestamp, pid: int):
-        self.x = x
-        self.y = y
+        self.x = x  # latitude
+        self.y = y  # longitude
         self.time = time
         self.id = pid
 
@@ -34,6 +35,7 @@ class STPoint:
             stp2: STPoint,
             div_constant: float = 0.000000000000000000000000000000001,
     ):
+        # return haversine(self.x, self.y, stp2.x, stp2.y) / (self.delta_time(stp2) + div_constant)  # m/s
         return self.euclidean_distance(stp2) / (self.delta_time(stp2) + div_constant)  # supposed to be in m/s
 
     def euclidean_distance(self, stp2: STPoint):

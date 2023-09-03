@@ -5,7 +5,7 @@ from datetime import datetime as datetime
 from math import radians, cos, sin, asin, sqrt
 
 
-def haversine(lon1: float, lat1: float, lon2: float, lat2: float):
+def haversine(lat1: float, lon1: float, lat2: float, lon2: float):
     """
     Calculate the great circle distance in kilometers between two points
     on the earth (specified in decimal degrees)
@@ -18,8 +18,8 @@ def haversine(lon1: float, lat1: float, lon2: float, lat2: float):
     dlat = lat2 - lat1
     a = sin(dlat/2)**2 + cos(lat1) * cos(lat2) * sin(dlon/2)**2
     c = 2 * asin(sqrt(a))
-    r = 6371 # Radius of earth in kilometers. Use 3956 for miles. Determines return value units.
-    return c * r
+    r = 6371  # Radius of earth in kilometers. Use 3956 for miles. Determines return value units.
+    return c * r * 1000  # in meters
 
 
 def __check_dist(lat1: float, lon1: float, lat2: float, lon2: float):
