@@ -527,10 +527,12 @@ class ORTEGA:
         intersection_pairs = get_spatial_intersect_pairs(self.ellipses_list_id1, self.ellipses_list_id2)
         return intersection_pairs
 
-    def compute_ppa_speed(self):
+    def compute_ppa_speed(self, lim: List[float] = [0, 0]):
+        if len(lim) != 2:
+            raise ValueError("Parameter 'lim' must be a list of two floats!")
         speed_list = [
-            [e.speed for e in self.ellipses_list_id1],
-            [e.speed for e in self.ellipses_list_id2]
+            [e.speed for e in self.ellipses_list_id1 if e.speed > lim[0]],
+            [e.speed for e in self.ellipses_list_id2 if e.speed > lim[1]]
         ]
         print(f"Descriptive statistics of PPA speed for id {self.id1}:")
         print(pd.Series(speed_list[0]).describe())
@@ -538,10 +540,12 @@ class ORTEGA:
         print(pd.Series(speed_list[1]).describe())
         return speed_list
 
-    def compute_ppa_perimeter(self):
+    def compute_ppa_perimeter(self, lim: List[float] = [0, 0]):
+        if len(lim) != 2:
+            raise ValueError("Parameter 'lim' must be a list of two floats!")
         size_list = [
-            [e.el.length for e in self.ellipses_list_id1],
-            [e.el.length for e in self.ellipses_list_id2]
+            [e.el.length for e in self.ellipses_list_id1 if e.el.length > lim[0]],
+            [e.el.length for e in self.ellipses_list_id2 if e.el.length > lim[1]]
         ]
         print(f"Descriptive statistics of PPA perimeter for id {self.id1}:")
         print(pd.Series(size_list[0]).describe())
