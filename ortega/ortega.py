@@ -534,9 +534,9 @@ class ORTEGA:
             [e.speed for e in self.ellipses_list_id1 if e.speed > lim[0]],
             [e.speed for e in self.ellipses_list_id2 if e.speed > lim[1]]
         ]
-        print(f"Descriptive statistics of PPA speed for id {self.id1}:")
+        print(f"Descriptive statistics of PPA speed (m/s) for id {self.id1}:")
         print(pd.Series(speed_list[0]).describe())
-        print(f"Descriptive statistics of PPA speed for id {self.id2}:")
+        print(f"Descriptive statistics of PPA speed (m/s) for id {self.id2}:")
         print(pd.Series(speed_list[1]).describe())
         return speed_list
 
@@ -547,9 +547,9 @@ class ORTEGA:
             [e.el.length for e in self.ellipses_list_id1 if e.el.length > lim[0]],
             [e.el.length for e in self.ellipses_list_id2 if e.el.length > lim[1]]
         ]
-        print(f"Descriptive statistics of PPA perimeter for id {self.id1}:")
+        print(f"Descriptive statistics of PPA perimeter (meter) for id {self.id1}:")
         print(pd.Series(size_list[0]).describe())
-        print(f"Descriptive statistics of PPA perimeter for id {self.id2}:")
+        print(f"Descriptive statistics of PPA perimeter (meter) for id {self.id2}:")
         print(pd.Series(size_list[1]).describe())
         return size_list
 
