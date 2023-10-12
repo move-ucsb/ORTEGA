@@ -529,7 +529,7 @@ class ORTEGA:
 
     def compute_ppa_speed(self, lim: List[float] = [0, 0]):
         if len(lim) != 2:
-            raise ValueError("Parameter 'lim' must be a list of two floats!")
+            raise ValueError("Parameter 'lim' must be a list of two floats (unit: m/s)!")
         speed_list = [
             [e.speed for e in self.ellipses_list_id1 if e.speed > lim[0]],
             [e.speed for e in self.ellipses_list_id2 if e.speed > lim[1]]
@@ -541,17 +541,53 @@ class ORTEGA:
         return speed_list
 
     def compute_ppa_perimeter(self, lim: List[float] = [0, 0]):
+
         if len(lim) != 2:
-            raise ValueError("Parameter 'lim' must be a list of two floats!")
+            raise ValueError("Parameter 'lim' must be a list of two floats (unit: meter)!")
         size_list = [
             [e.el.length for e in self.ellipses_list_id1 if e.el.length > lim[0]],
             [e.el.length for e in self.ellipses_list_id2 if e.el.length > lim[1]]
         ]
-        print(f"Descriptive statistics of PPA perimeter (meter) for id {self.id1}:")
-        print(pd.Series(size_list[0]).describe())
-        print(f"Descriptive statistics of PPA perimeter (meter) for id {self.id2}:")
-        print(pd.Series(size_list[1]).describe())
-        return size_list
+        if mean(size_list[0]) < 1000:
+            print(f"Descriptive statistics of PPA perimeter (meter) for id {self.id1}:")
+            print(pd.Series(size_list[0]).describe())
+            print(f"Descriptive statistics of PPA perimeter (meter) for id {self.id2}:")
+            print(pd.Series(size_list[1]).describe())
+            return size_list
+        else:
+            size_list_update = [
+                [e / 1000 for e in size_list[0]],
+                [e / 1000 for e in size_list[1]]
+            ]
+            print(f"Descriptive statistics of PPA perimeter (kilometer) for id {self.id1}:")
+            print(pd.Series(size_list_update[0]).describe())
+            print(f"Descriptive statistics of PPA perimeter (kilometer) for id {self.id2}:")
+            print(pd.Series(size_list_update[1]).describe())
+            return size_list_update
+
+    def compute_ppa_area(self, lim: List[float] = [0, 0]):
+        if len(lim) != 2:
+            raise ValueError("Parameter 'lim' must be a list of two floats (unit: square meter)!")
+        size_list = [
+            [e.geom.area for e in self.ellipses_list_id1 if e.geom.area > lim[0]],
+            [e.geom.area for e in self.ellipses_list_id2 if e.geom.area > lim[1]]
+        ]
+        if mean(size_list[0]) < 1000:
+            print(f"Descriptive statistics of PPA area (square meter) for id {self.id1}:")
+            print(pd.Series(size_list[0]).describe())
+            print(f"Descriptive statistics of PPA area (square meter) for id {self.id2}:")
+            print(pd.Series(size_list[1]).describe())
+            return size_list
+        else:
+            size_list_update = [
+                [e / 1000000 for e in size_list[0]],
+                [e / 1000000 for e in size_list[1]]
+            ]
+            print(f"Descriptive statistics of PPA perimeter (square kilometer) for id {self.id1}:")
+            print(pd.Series(size_list_update[0]).describe())
+            print(f"Descriptive statistics of PPA perimeter (square kilometer) for id {self.id2}:")
+            print(pd.Series(size_list_update[1]).describe())
+            return size_list_update
 
     def compute_ppa_interval(self):
         time_diff = [

@@ -3,6 +3,7 @@ import numpy as np
 import math
 from datetime import datetime as datetime
 from math import radians, cos, sin, asin, sqrt
+from statistics import mean
 
 
 def haversine(lat1: float, lon1: float, lat2: float, lon2: float):
