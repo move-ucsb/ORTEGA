@@ -1,9 +1,9 @@
 # ORTEGA
 
-ORTEGA is a python package for analyzing and visualizing potential interactions between a pair of moving entities based on the observation of their movement using a time-geographic-based approach.
-ORTEGA contributes two significant capabilities: 1) the function of detecting potential interactions (e.g., encounters, concurrent interaction, delayed interaction) from movement data of two entities;  2) the ability to calculate attributes of potential interactions including start time, end time, interaction duration, and difference in movement parameters such as speed and movement direction.
+ORTEGA is a Python package for analyzing and visualizing potential interactions between a pair of moving entities based on the observation of their movement using a time-geographic-based approach.
+ORTEGA contributes two significant capabilities: (1) the functions to identify potential interactions (e.g., encounters, concurrent interactions, delayed interactions) from movement data of two or more entities using a time-geographic-based approach; and (2) the capacity to compute attributes of potential interaction events including start time, end time, interaction duration, and difference in movement parameters such as speed and moving direction, and also contextualize the identified potential interaction events.
 
-Current version of ORTEGA only supports inputting GPS points of a pair of moving entities. It works the best when the two entities were tracked with the same sampling rate. The results may not be desirable when the sampling rate is different. In addition, ORTEGA currently can only measure the duration of concurrent interaction but not delayed interaction.  
+Current version of ORTEGA only supports inputting GPS points of a pair of moving entities. It works the best when the two entities were tracked with the same sampling rate. The results may not be desirable when the sampling rate is different. To conduct interaction analysis for more than two individuals, the user will need to employ For loops, by considering a moving entity as a reference at each loop and running the analysis in conjunction with all other individuals in the data set. 
 
 **Citation info:**
 > Dodge, S., Su, R., Johnson, J., Simcharoen, A., Goulias, K., Smith, J. L., & Ahearn, S. C. (2021). [ORTEGA: An object-oriented time-geographic analytical approach to trace space-time contact patterns in movement data](https://www.sciencedirect.com/science/article/pii/S0198971521000375). *Computers, Environment and Urban Systems*, 88, 101630.
