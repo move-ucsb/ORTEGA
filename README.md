@@ -9,6 +9,9 @@ Current version of ORTEGA only supports inputting GPS points of a pair of moving
 > Dodge, S., Su, R., Johnson, J., Simcharoen, A., Goulias, K., Smith, J. L., & Ahearn, S. C. (2021). [ORTEGA: An object-oriented time-geographic analytical approach to trace space-time contact patterns in movement data](https://www.sciencedirect.com/science/article/pii/S0198971521000375). *Computers, Environment and Urban Systems*, 88, 101630.
 > 
 > Su, R., Dodge, S., & Goulias, K. (2022). [A classification framework and computational methods for human interaction analysis using movement data](https://onlinelibrary.wiley.com/doi/full/10.1111/tgis.12960). *Transactions in GIS*, 26(4), 1665-1682.
+>
+> Su, R., Liu, Y. & Dodge, S. (2024) [ORTEGA v1.0: an open-source Python package for context-aware interaction analysis using movement data](https://doi.org/10.1186/s40462-024-00460-2). *Movement Ecology* 12, 20. 
+
 
 
 
